@@ -1,0 +1,24 @@
+#Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# Virtual Environment
+final/
+
+#django
+*.log
+media/
+staticfiles/
+
+#VS Code
+.vscode/
+
+# Environment variables
+.env
+
+#Node(React later)
+node_modules/
+build/
