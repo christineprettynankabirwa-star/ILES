@@ -12,13 +12,13 @@ class CustomUserAdmin(UserAdmin):
 
     list_display = ("username", "email", "role", "is_staff", "is_superuser")
 
-fieldsets = UserAdmin.fieldsets + (
-    ("Role Information", {"fields": ("role", "university_id")}),
-)
+    fieldsets = UserAdmin.fieldsets + (
+        ("Role Information", {"fields": ("role", "university_id")}),
+    )
 
-add_fieldsets = UserAdmin.add_fieldsets + (
-    ("Role Information", {"fields": ("role", "university_id")}),
-)
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        ("Role Information", {"fields": ("role", "university_id")}),
+    )
 
 admin.site.register(CustomUser, CustomUserAdmin)
 
