@@ -9,12 +9,12 @@ class CustomUser(AbstractUser):
         ('admin', 'Admin'),
     )
 
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
     university_id = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):
         return self.username
     
-class Meta:
-    verbose_name = "Custom User"
-    verbose_name_plural = "Custom Users"
+    class Meta:
+        verbose_name = "Custom User"
+        verbose_name_plural = "Custom Users"
