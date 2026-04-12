@@ -1,14 +1,14 @@
 from django.contrib import admin
-from .models import Company
+from .models import InternshipPlacement
 
-@admin.register(Company)
-class CompanyAdmin(admin.ModelAdmin):
+@admin.register(InternshipPlacement)
+class InternshipPlacementAdmin(admin.ModelAdmin):
 
-    #Display columns in a list view
-    list_display = ('name', 'contact_email', 'phone_number', 'industry')
+    #diaplay comuns in  a list view
+    list_display = ('students', 'organization_name', 'start_date', 'is_active')
 
-#Enable\adds search functionality for name and industry fields
-    search_fields = ('name', 'industry')     
-    
-#Adds a filter sidebar on the right 
-list_filter = ('industry',)
+    #Adds a search bar
+    search_fields = ('students__username', 'organization_name') 
+
+    # Adds a filter sidebar
+    list_filter = ('is_active', 'organization_name')
