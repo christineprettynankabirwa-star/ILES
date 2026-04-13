@@ -47,4 +47,13 @@ class WeeklyLog(models.Model):
     activities = models.TextField()
     challenges = models.TextField()
 
-    
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='draft'
+    )
+
+    submitted_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Week {self.week_number} - {self.student.username}" 
