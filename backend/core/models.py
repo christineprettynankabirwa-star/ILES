@@ -35,3 +35,9 @@ class WeeklyLog(models.Model):
         on_delete=models.CASCADE,
         limit_choices_to={'role': 'student'}
     )
+
+    placement = models.ForeignKey(
+        'InternshipPlacement',
+        on_delete=models.CASCADE,
+        related_name='weekly_logs'
+    )
