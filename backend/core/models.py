@@ -18,3 +18,14 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = "Custom User"
         verbose_name_plural = "Custom Users"
+
+
+#WeeklyLog model to store weekly logs for students
+
+class WeeklyLog(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('submitted', 'Submitted'),
+        ('reviewed', 'Reviewed'),
+        ('approved', 'Approved'),
+    ]
