@@ -20,6 +20,11 @@ class CustomUser(AbstractUser):
         verbose_name = "Custom User"
         verbose_name_plural = "Custom Users"
 
+#Stub model - temporary model for InternshipPlacement
+class InternshipPlacement(models.Model):
+    #TEMPORARY STUB MODEL
+    pass
+
 
 class InternshipPlacement(models.Model):
     student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
