@@ -63,7 +63,7 @@ class WeeklyLog(models.Model):
       on_delete=models.CASCADE,
       limit_choices_to={'role': 'student'}
     )
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Draft')
     
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -71,7 +71,4 @@ class WeeklyLog(models.Model):
 
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
-    
-
-
     
