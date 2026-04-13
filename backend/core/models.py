@@ -28,7 +28,7 @@ class placement(models.Model):
         'customer',
         on_delete=models.CASADE,
         related_name='student_placements',
-        'limit_choices_to={'role': 'student'},
+        limit_choices_to={'role': 'student'},
     )
 
     accademic_supervisor = models.ForeignKey(
