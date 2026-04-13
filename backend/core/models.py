@@ -29,3 +29,9 @@ class WeeklyLog(models.Model):
         ('reviewed', 'Reviewed'),
         ('approved', 'Approved'),
     ]
+
+    student = models.ForeignKey(
+        'CustomUser',
+        on_delete=models.CASCADE,
+        limit_choices_to={'role': 'student'}
+    )
