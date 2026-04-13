@@ -19,6 +19,11 @@ class CustomUser(AbstractUser):
         verbose_name = "Custom User"
         verbose_name_plural = "Custom Users"
 
+#Stub model - temporary model for InternshipPlacement
+class InternshipPlacement(models.Model):
+    #TEMPORARY STUB MODEL
+    pass
+
 
 #WeeklyLog model to store weekly logs for students
 
