@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, InternshipPlacement, WeeklyLog  # 1. Added WeeklyLog here
+from .models import CustomUser, InternshipPlacement, WeeklyLog 
 
 # --- Custom User Admin ---
 class CustomUserAdmin(UserAdmin):
@@ -34,10 +34,12 @@ class InternshipPlacementAdmin(admin.ModelAdmin):
 admin.site.register(InternshipPlacement, InternshipPlacementAdmin)
 
 # --- Weekly Log Admin ---
-#  to make WeeklyLog visible
 class WeeklyLogAdmin(admin.ModelAdmin):
     list_display = ('placement', 'week_number', 'status', 'created_at')
     list_filter = ('status', 'week_number')
     search_fields = ('placement__student__username', 'activities')
 
 admin.site.register(WeeklyLog, WeeklyLogAdmin)
+
+
+
