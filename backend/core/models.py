@@ -52,10 +52,10 @@ class WeeklyLog(models.Model):
     
     # These choices handle the approval workflow 
     STATUS_CHOICES = [
-        ('draft ', 'Draft'),
+        ('draft', 'Draft'),
         ('submitted', 'Submitted'),
-        ('reviewed ', 'Reviewed'),
-        ('approved  ', 'Approved '),
+        ('reviewed', 'Reviewed'),
+        ('approved', 'Approved'),
     ]
 
     student = models.ForeignKey(
@@ -71,5 +71,3 @@ class WeeklyLog(models.Model):
 
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
-
-    
