@@ -41,3 +41,10 @@ class WeeklyLog(models.Model):
         on_delete=models.CASCADE,
         related_name='weekly_logs'
     )
+
+    week_number = models.IntegerField()
+
+    activities = models.TextField()
+    challenges = models.TextField()
+
+    
