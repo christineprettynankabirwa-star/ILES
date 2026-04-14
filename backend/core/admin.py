@@ -25,6 +25,7 @@ admin.site.register(WeeklyLog)
 #-----EvaluationCriteria------
 class EvaluationCriteriaAdmin(admin.ModelAdmin):
     list_display = ("title", "max_score")
-    
 
-admin.site.register(Evaluation)
+
+admin.site.register(EvaluationCriteria, EvaluationCriteriaAdmin)
+
