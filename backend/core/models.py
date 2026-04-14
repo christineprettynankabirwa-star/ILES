@@ -25,14 +25,14 @@ class placement(models.Model):
 
 #link to the students 
     student = models.ForeignKey(
-        'customer',
-        on_delete=models.CASADE,
+        'CustomUser',
+        on_delete=models.CASCADE,
         related_name='student_placements',
         limit_choices_to={'role': 'student'},
     )
 
     accademic_supervisor = models.ForeignKey(
-        customer,
+        CustomUser,
         on_delete=models.SET_NULL,
         null=True,
         related_name='accademic_supervisor_placements',
