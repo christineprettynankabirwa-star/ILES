@@ -29,3 +29,10 @@ class EvaluationCriteriaAdmin(admin.ModelAdmin):
 
 admin.site.register(EvaluationCriteria, EvaluationCriteriaAdmin)
 
+#-----Evaluation------
+class EvaluationAdmin(admin.ModelAdmin):
+    list_display = ("student", "placement", "criteria", "score", "date_evaluated")
+    list_filter = ("placement", "criteria")
+    search_fields = ("student__username",)
+
+admin.site.register(Evaluation,EvaluationAdmin)
