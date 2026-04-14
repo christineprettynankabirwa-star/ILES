@@ -37,3 +37,10 @@ class EvaluationCriteria(models.Model):
     def __str__(self):
         return f"{self.title} ({self.max_score} marks)"
 
+# actual code for evaluation-module starting with Evaluation 
+class Evaluation(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE)
+    criteria = models.ForeignKey(EvaluationCriteria, on_delete=models.CASCADE)
+
+    
