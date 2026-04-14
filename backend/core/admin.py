@@ -16,13 +16,20 @@ class CustomUserAdmin(UserAdmin):
         ("Role Information", {"fields": ("role", "university_id")}),
     )
 
+
+#-----CustomUserAdmin------
 class CustomUserAdmin(admin.ModelAdmin):
     search_fields = ("username", "email")
     list_filter = ("role", "is_staff", "is_superuser")
     list_display = ("username", "email", "role", "is_staff", "is_superuser")
 admin.site.register(CustomUser, CustomUserAdmin)
 
+#-----InternshipPlacementAdmin------
+class InternshipPlacementAdmin(admin.ModelAdmin):
+    search_fields = ("company_name",)
+
 admin.site.register(InternshipPlacement)
+
 
 admin.site.register(WeeklyLog)
 
