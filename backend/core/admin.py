@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Placement 
+from .models import CustomUser, InternshipPlacement, Placement 
 
 
 # Register your models here.
@@ -20,7 +20,7 @@ class CustomUserAdmin(UserAdmin):
 admin.site.register(CustomUser, CustomUserAdmin)
 
 
-class PlacementAdmin(admin.ModelAdmin):
+class InternshipPlacementAdmin(admin.ModelAdmin):
 
     #organise with fieldsets
     fieldsets = (   
@@ -37,4 +37,4 @@ class PlacementAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(Placement)
+admin.site.register(InternshipPlacement, InternshipPlacementAdmin)
