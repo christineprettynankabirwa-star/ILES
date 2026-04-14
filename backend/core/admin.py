@@ -21,7 +21,7 @@ admin.site.register(CustomUser, CustomUserAdmin)
 
 
 class InternshipPlacementAdmin(admin.ModelAdmin):
-    search_fields = ['organization_name',]
+    search_fields = ['student__username', 'organization_name', 'academic_supervisor__username']
 
     #organise with fieldsets
     fieldsets = (   

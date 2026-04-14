@@ -67,8 +67,8 @@ class InternshipPlacement(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
 
-    
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    #status
+    is_active = models.BooleanField(default=True)
     
 
     def __str__(self):
