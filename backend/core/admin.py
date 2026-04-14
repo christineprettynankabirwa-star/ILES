@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, InternshipPlacement, WeeklyLog, EvaluationCriteria, Evaluation  
+from .models import CustomUser, InternshipPlacement, WeeklyLog, Evaluation, EvaluationCriteria 
 
 # Register your models here.
 class CustomUserAdmin(UserAdmin):
@@ -17,7 +17,14 @@ class CustomUserAdmin(UserAdmin):
     )
 
 admin.site.register(CustomUser, CustomUserAdmin)
+
 admin.site.register(InternshipPlacement)
+
 admin.site.register(WeeklyLog)
-admin.site.register(EvaluationCriteria)
+
+#-----EvaluationCriteria------
+class EvaluationCriteriaAdmin(admin.ModelAdmin):
+    list_display = ("title", "max_score")
+    
+
 admin.site.register(Evaluation)
