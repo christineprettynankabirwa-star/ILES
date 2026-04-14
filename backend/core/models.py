@@ -25,7 +25,7 @@ class InternshipPlacement(models.Model):
     pass
 
 #stub for Weekly-logs
-class WeeklyLog(models.Model):
+class Weekly-logs(models.Model):
     pass
 
 #actual code for evaluation-module starting with EvaluationCriteria
