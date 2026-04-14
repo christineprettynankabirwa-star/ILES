@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, InternshipPlacement, Weeklylog, EvaluationCriteria, Evaluation  
+from .models import CustomUser, InternshipPlacement, WeeklyLog, EvaluationCriteria, Evaluation  
 
 # Register your models here.
 class CustomUserAdmin(UserAdmin):
