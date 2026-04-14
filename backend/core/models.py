@@ -23,6 +23,13 @@ class CustomUser(AbstractUser):
 
 class InternshipPlacement(models.Model):
 
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
+
 #link to the students 
     student = models.ForeignKey(
         'CustomUser',
@@ -30,7 +37,13 @@ class InternshipPlacement(models.Model):
         related_name='student_placements',
         limit_choices_to={'role': 'student'},
     )
+    
+    #student details
+    registration_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    course = models.CharField(max_length=100)
+    year_of_study = models.IntegerField()
 
+#accademic supervisor details
     accademic_supervisor = models.ForeignKey(
         CustomUser,
         on_delete=models.SET_NULL,
