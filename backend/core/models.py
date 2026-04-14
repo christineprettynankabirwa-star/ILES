@@ -43,4 +43,9 @@ class Evaluation(models.Model):
     placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE)
     criteria = models.ForeignKey(EvaluationCriteria, on_delete=models.CASCADE)
 
-    
+    score = models.IntegerField()
+    supervisor_comment = models.TextField(blank=True)
+    date_evaluated = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student.username} - {self.criteria.title} ({self.score})"
