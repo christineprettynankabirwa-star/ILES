@@ -28,4 +28,12 @@ class InternshipPlacement(models.Model):
 class WeeklyLog(models.Model):
     pass
 
-#actual code for evaluation-module
+#actual code for evaluation-module starting with EvaluationCriteria
+class EvaluationCriteria(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    max_score = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.title} ({self.max_score} marks)"
+
