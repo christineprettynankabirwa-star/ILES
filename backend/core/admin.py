@@ -18,4 +18,23 @@ class CustomUserAdmin(UserAdmin):
     )
 
 admin.site.register(CustomUser, CustomUserAdmin)
+
+
+class PlacementAdmin(admin.ModelAdmin):
+
+    #organise with fieldsets
+    fieldsets = (   
+        ("Student and university",
+          {"fields": ("student", "accademic_supervisor"),
+          'description': 'Select the student and their academic supervisor for this placement.',}),
+
+        ("Workplace Details", {
+            "fields": ("organization_name", "workplace_supervisor_name", "workplace_supervisor_email")}),
+
+        ("Placement Duration and status", {
+            "fields": ("start_date", "end_date", "is_active")}),
+        
+    )
+
+
 admin.site.register(Placement)
