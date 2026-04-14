@@ -21,7 +21,11 @@ class CustomUser(AbstractUser):
 
 
 # stub for InternshipPlacement
+class InternshipPlacement(models.Model):
+    pass
 
 #stub for Weekly-logs
+class WeeklyLog(models.Model):
+    pass
 
 #actual code for evaluation-module
