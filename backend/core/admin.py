@@ -28,10 +28,12 @@ admin.site.register(CustomUser, CustomUserAdmin)
 class InternshipPlacementAdmin(admin.ModelAdmin):
     search_fields = ("company_name",)
 
-admin.site.register(InternshipPlacement)
+admin.site.register(InternshipPlacement, InternshipPlacementAdmin)
 
+class WeeklyLogAdmin(admin.ModelAdmin):
+    search_fields = ("title",)
 
-admin.site.register(WeeklyLog)
+admin.site.register(WeeklyLog, WeeklyLogAdmin)
 
 #-----EvaluationCriteria------
 #-----Criteria Admin------
