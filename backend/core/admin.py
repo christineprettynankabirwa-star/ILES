@@ -17,4 +17,7 @@ class CustomUserAdmin(UserAdmin):
     )
 
 admin.site.register(CustomUser, CustomUserAdmin)
-
+admin.site.register(InternshipPlacement)
+admin.site.register(WeeklyLog)
+admin.site.register(EvaluationCriteria)
+admin.site.register(Evaluation)
