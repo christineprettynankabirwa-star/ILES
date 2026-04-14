@@ -18,3 +18,10 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = "Custom User"
         verbose_name_plural = "Custom Users"
+
+
+# stub for InternshipPlacement
+
+#stub for Weekly-logs
+
+#actual code for evaluation-module
