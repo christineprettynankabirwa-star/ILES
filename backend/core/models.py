@@ -43,14 +43,16 @@ class InternshipPlacement(models.Model):
     course = models.CharField(max_length=100)
     year_of_study = models.IntegerField()
 
-#accademic supervisor details
-    accademic_supervisor = models.ForeignKey(
+#academic supervisor details
+    academic_supervisor = models.ForeignKey(
         CustomUser,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='accademic_supervisor_placements',
+        related_name='academic_supervisor_placements',
         limit_choices_to={'role': 'acad_supervisor'},
     )
+
+    academic_supervisor_email = models.EmailField(blank=True, null=True)
 
     #workplace details
     organization_name = models.CharField(max_length=255)
