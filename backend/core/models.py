@@ -21,7 +21,7 @@ class CustomUser(AbstractUser):
 
 
 
-class placement(models.Model):
+class Placement(models.Model):
 
 #link to the students 
     student = models.ForeignKey(

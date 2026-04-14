@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, placement 
+from .models import CustomUser, Placement 
 
 
 # Register your models here.
@@ -18,5 +18,4 @@ class CustomUserAdmin(UserAdmin):
     )
 
 admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(placement)
-
+admin.site.register(Placement)
