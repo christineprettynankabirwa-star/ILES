@@ -77,7 +77,7 @@ class InternshipPlacement(models.Model):
     
     from django.db import models
 
-class WeeklyLog(models.model):
+class WeeklyLog(models.Model):
     # ForeignKeys link your model to the work your team already did
     placement = models.ForeignKey('InternshipPlacement', on_delete=models.CASCADE, related_name='weekly_logs')
     week_number = models.PositiveIntegerField()
