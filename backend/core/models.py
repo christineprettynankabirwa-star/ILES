@@ -1,5 +1,6 @@
-from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
@@ -73,3 +74,24 @@ class InternshipPlacement(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.organization_name}"
+    
+    from django.db import models
+
+class WeeklyLog(models.py):
+    # ForeignKeys link your model to the work your team already did
+    placement = models.ForeignKey('InternshipPlacement', on_delete=models.CASCADE, related_name='weekly_logs')
+    week_number = models.PositiveIntegerField()
+    activities = models.TextField()
+    
+    # These choices handle the approval workflow required by your lecturer
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Week {self.week_number} - {self.placement.student.username}"
