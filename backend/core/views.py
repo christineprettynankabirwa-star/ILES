@@ -10,4 +10,4 @@ class LogEvaluationView(LoginRequiredMixin,UpdateView):
     fields=['supervisor_comment','score','status']
     template_name='logs/log_evaluation.html'
     success_url=reverse_lazy('log-list')
-    #Add staff/supervisor check here
+    #Add staff/supervisor check herepython
