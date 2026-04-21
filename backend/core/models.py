@@ -79,6 +79,7 @@ class Evaluation(models.Model):
         ('work_supervisor', 'Workplace Supervisor'),
         ('acad_supervisor', 'Academic Supervisor'),
     )
+    criteria=models.ForeignKey(EvaluationCriteria,on_delete=models.CASCADE,related_name='evaluations')
 
     placement = models.ForeignKey(
         InternshipPlacement,
@@ -118,6 +119,17 @@ class Evaluation(models.Model):
         ]
         self.overall_score = sum(scores) / len(scores)
         super().save(*args, **kwargs)
+    def __str__(self):
+        return f" {self.student.username} -{self.criteria.title} ({self.overall_score}) " 
 
     def __str__(self):
         return f"Evaluation for {self.placement.student.username} by {self.evaluator.username}"
+    
+class EvaluationCriteria(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    max_score = models.IntegerField(default=10) 
+
+
+    def __str__(self):
+        return f"{self.title} ({self.max_score} marks) "
