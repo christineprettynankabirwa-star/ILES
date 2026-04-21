@@ -72,7 +72,8 @@ class InternshipPlacement(models.Model):
     
 
     def __str__(self):
-        return f"{self.student.username} - {self.organization_name}"
+        return f"{self.student.username} - {self.organization_name}" 
+    
 class Evaluation(models.Model):
     EVALUATOR_ROLE = (
         ('work_supervisor', 'Workplace Supervisor'),
