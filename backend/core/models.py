@@ -73,3 +73,50 @@ class InternshipPlacement(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.organization_name}"
+class Evaluation(models.Model):
+    EVALUATOR_ROLE = (
+        ('work_supervisor', 'Workplace Supervisor'),
+        ('acad_supervisor', 'Academic Supervisor'),
+    )
+
+    placement = models.ForeignKey(
+        InternshipPlacement,
+        on_delete=models.CASCADE,
+        related_name='evaluations'
+    )
+
+    evaluator = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        limit_choices_to={'role__in': ['work_supervisor', 'acad_supervisor']}
+    )
+
+    evaluator_role = models.CharField(max_length=20, choices=EVALUATOR_ROLE)
+
+    # Evaluation Criteria (Scores out of 10 or 100)
+    communication_skills = models.IntegerField()
+    technical_skills = models.IntegerField()
+    teamwork = models.IntegerField()
+    punctuality = models.IntegerField()
+    problem_solving = models.IntegerField()
+
+    # Overall
+    overall_score = models.FloatField(blank=True, null=True)
+    comments = models.TextField(blank=True, null=True)
+
+    evaluated_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        # Auto-calculate overall score
+        scores = [
+            self.communication_skills,
+            self.technical_skills,
+            self.teamwork,
+            self.punctuality,
+            self.problem_solving
+        ]
+        self.overall_score = sum(scores) / len(scores)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Evaluation for {self.placement.student.username} by {self.evaluator.username}"
