@@ -1,8 +1,20 @@
-# Python/Django
-venv/
-.venv/
-env/
+# Python / Django
 __pycache__/
 *.py[cod]
+*$py.class
+venv/
+.venv/
 db.sqlite3
 .env
+
+# React / Node / Vite
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Editor & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

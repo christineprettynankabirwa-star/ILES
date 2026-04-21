@@ -33,18 +33,18 @@ class InternshipPlacement(models.Model):
 
 #link to the students 
 student = models.ForeignKey(
-    'CustomUser',
+       'CustomUser',
     on_delete=models.CASCADE,
     limit_choices_to={'role': 'student'} 
 )
     
     #student details
-    registration_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
-    course = models.CharField(max_length=100)
-    year_of_study = models.IntegerField()
+registration_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
+course = models.CharField(max_length=100)
+year_of_study = models.IntegerField()
 
 #academic supervisor details
-    academic_supervisor = models.ForeignKey(
+academic_supervisor = models.ForeignKey(
         CustomUser,
         on_delete=models.SET_NULL,
         null=True,
@@ -52,30 +52,31 @@ student = models.ForeignKey(
         limit_choices_to={'role': 'acad_supervisor'},
     )
 
-    academic_supervisor_name = models.CharField(max_length=255, blank=True, null=True)
-    academic_supervisor_contact = models.CharField(max_length=15, blank=True, null=True)
-    academic_supervisor_email = models.EmailField(blank=True, null=True)
+academic_supervisor_name = models.CharField(max_length=255, blank=True, null=True)
+academic_supervisor_contact = models.CharField(max_length=15, blank=True, null=True)
+academic_supervisor_email = models.EmailField(blank=True, null=True)
 
     #workplace details
-    organization_name = models.CharField(max_length=255)
-    workplace_supervisor_name = models.CharField(max_length=255)
-    workplace_supervisor_contact = models.CharField(max_length=15, blank=True, null=True)
-    workplace_supervisor_email = models.EmailField(blank=True, null=True)
+organization_name = models.CharField(max_length=255)
+workplace_supervisor_name = models.CharField(max_length=255)
+workplace_supervisor_contact = models.CharField(max_length=15, blank=True, null=True)
+workplace_supervisor_email = models.EmailField(blank=True, null=True)
 
     #duration 
-    created_at = models.DateTimeField(auto_now_add=True)
-    start_date = models.DateField()
-    end_date = models.DateField()
+created_at = models.DateTimeField(auto_now_add=True)
+start_date = models.DateField()
+end_date = models.DateField()
 
     #status
-    is_active = models.BooleanField(default=True)
+is_active = models.BooleanField(default=True)
     
 
-    def __str__(self):
+def __str__(self):
         return f"{self.student.username} - {self.organization_name}"
     
 
 class WeeklyLog(models.Model):
+    # ForeignKeys link your model to the work your team already did
     placement = models.ForeignKey('InternshipPlacement', on_delete=models.CASCADE, related_name='weekly_logs')
     week_number = models.PositiveIntegerField()
     activities = models.TextField()
@@ -93,7 +94,7 @@ class WeeklyLog(models.Model):
     student = models.ForeignKey(
       'CustomUser',
       on_delete=models.CASCADE,
-      limit_choices={'role': 'student'}
+      limit_choices_to={'role': 'student'}
     )
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
     
