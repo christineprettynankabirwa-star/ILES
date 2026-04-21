@@ -73,7 +73,14 @@ class InternshipPlacement(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.organization_name}" 
-    
+
+class EvaluationCriteria(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    max_score = models.IntegerField(default=10) 
+
+    def __str__(self):
+        return f"{self.title} ({self.max_score} marks) "
 class Evaluation(models.Model):
     EVALUATOR_ROLE = (
         ('work_supervisor', 'Workplace Supervisor'),
@@ -129,7 +136,6 @@ class EvaluationCriteria(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     max_score = models.IntegerField(default=10) 
-
 
     def __str__(self):
         return f"{self.title} ({self.max_score} marks) "
