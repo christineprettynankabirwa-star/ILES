@@ -32,12 +32,11 @@ class InternshipPlacement(models.Model):
 
 
 #link to the students 
-    student = models.ForeignKey(
-        'CustomUser',
-        on_delete=models.CASCADE,
-        related_name='student_placements',
-        limit_choices_to={'role': 'student'},
-    )
+student = models.ForeignKey(
+    'CustomUser',
+    on_delete=models.CASCADE,
+    limit_choices_to={'role': 'student'} 
+)
     
     #student details
     registration_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
@@ -77,14 +76,13 @@ class InternshipPlacement(models.Model):
     
 
 class WeeklyLog(models.Model):
-    # ForeignKeys link your model to the work your team already did
     placement = models.ForeignKey('InternshipPlacement', on_delete=models.CASCADE, related_name='weekly_logs')
     week_number = models.PositiveIntegerField()
     activities = models.TextField()
     challenges = models.TextField()
 
     
-    # These choices handle the approval workflow required by your lecturer
+    # These choices handle the approval workflow 
     STATUS_CHOICES = [
         ('draft ', 'Draft'),
         ('submitted', 'Submitted'),
