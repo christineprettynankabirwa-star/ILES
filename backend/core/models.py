@@ -75,23 +75,33 @@ class InternshipPlacement(models.Model):
     def __str__(self):
         return f"{self.student.username} - {self.organization_name}"
     
-    from django.db import models
 
 class WeeklyLog(models.Model):
     # ForeignKeys link your model to the work your team already did
     placement = models.ForeignKey('InternshipPlacement', on_delete=models.CASCADE, related_name='weekly_logs')
     week_number = models.PositiveIntegerField()
     activities = models.TextField()
+    challenges = models.TextField()
+
     
     # These choices handle the approval workflow required by your lecturer
     STATUS_CHOICES = [
-        ('Pending', 'Pending'),
-        ('Approved', 'Approved'),
-        ('Rejected', 'Rejected'),
+        ('draft ', 'Draft'),
+        ('submitted', 'Submitted'),
+        ('reviewed ', 'Reviewed'),
+        ('approved  ', 'Approved '),
     ]
+
+    student = models.ForeignKey(
+      'CustomUser',
+      on_delete=models.CASCADE,
+      limit_choices={'role': 'student'}
+    )
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
     
     created_at = models.DateTimeField(auto_now_add=True)
+
+    submitted_at = models.DateTimeField(null=True ,blank=True)
 
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
