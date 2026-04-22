@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser, InternshipPlacement, WeeklyLog 
 
+
 # --- Custom User Admin ---
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
@@ -13,6 +14,12 @@ class CustomUserAdmin(UserAdmin):
         ("Role Information", {"fields": ("role", "university_id")}),
     )
 
+
+#-----CustomUserAdmin------
+class CustomUserAdmin(admin.ModelAdmin):
+    search_fields = ("username", "email")
+    list_filter = ("role", "is_staff", "is_superuser")
+    list_display = ("username", "email", "role", "is_staff", "is_superuser")
 admin.site.register(CustomUser, CustomUserAdmin)
 
 # --- Internship Placement Admin ---
@@ -40,6 +47,3 @@ class WeeklyLogAdmin(admin.ModelAdmin):
     search_fields = ('placement__student__username', 'activities')
 
 admin.site.register(WeeklyLog, WeeklyLogAdmin)
-
-
-
