@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import timedelta
 
 
 class CustomUser(AbstractUser):
@@ -59,8 +62,10 @@ class WeeklyLog(models.Model):
 
  # ForeignKeys link your model to the work your team already did
     week_number = models.PositiveIntegerField()
+    week_start_date = models.DateField()
     activities = models.TextField()
     challenges = models.TextField()
+
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -69,12 +74,7 @@ class WeeklyLog(models.Model):
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
     
-
     
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-from datetime import timedelta
-
 def clean(self):
         # 1. Define the Deadline 7 days 
        submission_deadline = self.week_start_date + timedelta(days=7)
