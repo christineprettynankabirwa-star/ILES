@@ -38,8 +38,8 @@ class InternshipPlacement(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.student.username} - {self.organization_name}"
+def __str__(self):
+    return f"{self.student.username} - {self.organization_name}"
     
 
 class WeeklyLog(models.Model):
