@@ -19,8 +19,7 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = "Custom User"
         verbose_name_plural = "Custom Users"
-
-
+        
 class InternshipPlacement(models.Model):
     student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
     organization_name = models.CharField(max_length=255)
@@ -43,31 +42,30 @@ class InternshipPlacement(models.Model):
     
 
 class WeeklyLog(models.Model):
-    # ForeignKeys link your model to the work your team already did
-    placement = models.ForeignKey('InternshipPlacement', on_delete=models.CASCADE, related_name='weekly_logs')
-    week_number = models.PositiveIntegerField()
-    activities = models.TextField()
-    challenges = models.TextField()
-
-    
-    # These choices handle the approval workflow 
     STATUS_CHOICES = [
-        ('draft ', 'Draft'),
+        ('draft', 'Draft'),
         ('submitted', 'Submitted'),
-        ('reviewed ', 'Reviewed'),
-        ('approved  ', 'Approved '),
+        ('reviewed', 'Reviewed'),
+        ('approved', 'Approved'),
     ]
+
+    placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE, related_name='weekly_logs')
 
     student = models.ForeignKey(
       'CustomUser',
       on_delete=models.CASCADE,
-      limit_choices_to={'role': 'student'}
+      limit_choices_to={'role': 'student'} 
     )
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
-    
-    created_at = models.DateTimeField(auto_now_add=True)
 
-    submitted_at = models.DateTimeField(null=True ,blank=True)
+ # ForeignKeys link your model to the work your team already did
+    week_number = models.PositiveIntegerField()
+    activities = models.TextField()
+    challenges = models.TextField()
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    created_at = models.DateTimeField(auto_now_add=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
+    
