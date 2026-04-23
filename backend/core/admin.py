@@ -12,15 +12,12 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = UserAdmin.add_fieldsets + (
         ("Role Information", {"fields": ("role", "university_id")}),
     )
-
-
 #-----CustomUserAdmin------
 class CustomUserAdmin(admin.ModelAdmin):
     search_fields = ("username", "email")
     list_filter = ("role", "is_staff", "is_superuser")
     list_display = ("username", "email", "role", "is_staff", "is_superuser")
 admin.site.register(CustomUser, CustomUserAdmin)
-
 # --- Internship Placement Admin ---
 class InternshipPlacementAdmin(admin.ModelAdmin):
     search_fields = ['student__username', 'organization_name', 'academic_supervisor__username']
@@ -38,12 +35,10 @@ class InternshipPlacementAdmin(admin.ModelAdmin):
     )
 
 admin.site.register(InternshipPlacement, InternshipPlacementAdmin)
-
 # --- Weekly Log Admin ---
 class WeeklyLogAdmin(admin.ModelAdmin):
     list_display = ('placement', 'week_number', 'status', 'created_at')
     list_filter = ('status', 'week_number')
     search_fields = ('placement__student__username', 'activities')
-
 admin.site.register(WeeklyLog, WeeklyLogAdmin)
 
