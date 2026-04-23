@@ -62,7 +62,7 @@ class WeeklyLog(models.Model):
 
  # ForeignKeys link your model to the work your team already did
     week_number = models.PositiveIntegerField()
-    week_start_date = models.DateField()
+    week_start_date = models.DateField(null=True, blank=True)
     activities = models.TextField()
     challenges = models.TextField()
 
