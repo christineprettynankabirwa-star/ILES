@@ -19,13 +19,7 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = "Custom User"
         verbose_name_plural = "Custom Users"
-
-#Stub model - temporary model for InternshipPlacement
-class InternshipPlacement(models.Model):
-    #TEMPORARY STUB MODEL
-    pass
-
-
+        
 class InternshipPlacement(models.Model):
     student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
     organization_name = models.CharField(max_length=255)
@@ -56,6 +50,9 @@ class WeeklyLog(models.Model):
 
     
     # These choices handle the approval workflow 
+#WeeklyLog model to store weekly logs for students
+
+class WeeklyLog(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
         ('submitted', 'Submitted'),

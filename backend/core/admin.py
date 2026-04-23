@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser, InternshipPlacement, WeeklyLog 
 
-
 # --- Custom User Admin ---
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
@@ -47,3 +46,4 @@ class WeeklyLogAdmin(admin.ModelAdmin):
     search_fields = ('placement__student__username', 'activities')
 
 admin.site.register(WeeklyLog, WeeklyLogAdmin)
+
