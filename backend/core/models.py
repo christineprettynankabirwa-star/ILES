@@ -69,3 +69,35 @@ class WeeklyLog(models.Model):
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
     
+
+    
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import timedelta
+
+def clean(self):
+        # 1. Define the Deadline 7 days 
+       submission_deadline = self.week_start_date + timedelta(days=7)
+
+       # 2. Enforce the Deadline 
+       if self.status == 'submitted' and timezone.now().date() > submission_deadline:
+        raise ValidationError(f"The submission deadline for Week {self.week_number} has passed.")
+
+    # 3. Prevent Future Submissions 
+       if self.status == 'submitted' and self.week_start_date > timezone.now().date():
+        raise ValidationError("You cannot submit a log for a week that hasn't started yet.")
+    
+def save(self, *args, **kwargs):
+        """
+        Handles Week 6 State Transitions and Locking[cite: 15, 142].
+        """
+        if self.pk:  # If updating an existing record
+            original = WeeklyLog.objects.get(pk=self.pk)
+            
+            # Lock editing: Prevent modifications if the log is already approved 
+            if original.status == 'approved':
+                raise ValidationError("This log has been approved and can no longer be edited.")
+
+        # Run the clean() method validation before saving to the database
+        self.full_clean()
+        super().save(*args, **kwargs)
