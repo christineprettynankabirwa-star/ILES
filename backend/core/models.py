@@ -42,17 +42,6 @@ class InternshipPlacement(models.Model):
     
 
 class WeeklyLog(models.Model):
-    # ForeignKeys link your model to the work your team already did
-    placement = models.ForeignKey('InternshipPlacement', on_delete=models.CASCADE, related_name='weekly_logs')
-    week_number = models.PositiveIntegerField()
-    activities = models.TextField()
-    challenges = models.TextField()
-
-    
-    # These choices handle the approval workflow 
-#WeeklyLog model to store weekly logs for students
-
-class WeeklyLog(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
         ('submitted', 'Submitted'),
@@ -60,16 +49,22 @@ class WeeklyLog(models.Model):
         ('approved', 'Approved'),
     ]
 
+    placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE, related_name='weekly_logs')
+
     student = models.ForeignKey(
       'CustomUser',
       on_delete=models.CASCADE,
-      limit_choices_to={'role': 'student'}
+      limit_choices_to={'role': 'student'} 
     )
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Draft')
-    
-    created_at = models.DateTimeField(auto_now_add=True)
 
-    submitted_at = models.DateTimeField(null=True ,blank=True)
+ # ForeignKeys link your model to the work your team already did
+    week_number = models.PositiveIntegerField()
+    activities = models.TextField()
+    challenges = models.TextField()
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    created_at = models.DateTimeField(auto_now_add=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
