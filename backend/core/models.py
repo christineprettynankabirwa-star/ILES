@@ -40,7 +40,7 @@ class InternshipPlacement(models.Model):
     registration_number = models.CharField(max_length=100)
     course = models.CharField(max_length=255)
     start_date = models.DateField()
-    end_date = models.DateField()
+    end_date = models.DateField(
 
     academic_supervisor_email = models.EmailField()
     workplace_supervisor_name = models.CharField(max_length=255)
