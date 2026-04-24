@@ -22,3 +22,4 @@ staticfiles/
 #Node(React later)
 node_modules/
 build/
+test/
