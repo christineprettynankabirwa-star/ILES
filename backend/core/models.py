@@ -56,6 +56,7 @@ class WeeklyLog(models.Model):
         ('submitted', 'Submitted'),
         ('reviewed ', 'Reviewed'),
         ('approved  ', 'Approved '),
+        ('rejected  ', 'Rejected '),
     ]
 
     student = models.ForeignKey(
