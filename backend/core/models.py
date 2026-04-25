@@ -18,6 +18,7 @@ class CustomUser(AbstractUser):
         return  str(self.username)
 
     class Meta:
+        '''Meta definition for CustomUser model'''
         verbose_name = "Custom User"
         verbose_name_plural = "Custom Users"
 class InternshipPlacement(models.Model):
@@ -40,7 +41,7 @@ class InternshipPlacement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.student.username } - {self.organization_name}"
+        return f"{self.student.username} - {self.organization_name}"
 
 
 class WeeklyLog(models.Model):
