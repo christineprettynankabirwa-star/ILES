@@ -1,3 +1,4 @@
+# pylint: disable=no-member
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -46,6 +47,7 @@ class InternshipPlacement(models.Model):
 
 
 class WeeklyLog(models.Model):
+    '''Model representing a weekly log for an internship placement'''
     STATUS_CHOICES = [
         ('draft', 'Draft'),
         ('submitted', 'Submitted'),
