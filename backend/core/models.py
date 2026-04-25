@@ -13,13 +13,12 @@ class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
     university_id = models.CharField(max_length=50, blank=True, null=True)
 
-    def __str__(self):
-        return self.username
+    def  __str__(self):
+        return  str(self.username)
     
     class Meta:
         verbose_name = "Custom User"
-        verbose_name_plural = "Custom Users"
-        
+        verbose_name_plural = "Custom Users"             
 class InternshipPlacement(models.Model):
     student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
     organization_name = models.CharField(max_length=255)
@@ -27,7 +26,8 @@ class InternshipPlacement(models.Model):
     course = models.CharField(max_length=255)
     start_date = models.DateField()
     end_date = models.DateField()
-    
+
+
     # Supervisor Details
     academic_supervisor = models.CharField(max_length=255)
     academic_supervisor_email = models.EmailField()
@@ -38,7 +38,7 @@ class InternshipPlacement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.student.username} - {self.organization_name}"
+        return f"{self.student.username } - {self.organization_name}"
     
 
 class WeeklyLog(models.Model):
