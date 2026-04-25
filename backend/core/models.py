@@ -21,7 +21,8 @@ class CustomUser(AbstractUser):
         verbose_name = "Custom User"
         verbose_name_plural = "Custom Users"
 class InternshipPlacement(models.Model):
-    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
+    student = models.ForeignKey('CustomUser',
+    on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
     organization_name = models.CharField(max_length=255)
     registration_number = models.CharField(max_length=100)
     course = models.CharField(max_length=255)
@@ -50,7 +51,8 @@ class WeeklyLog(models.Model):
         ('approved', 'Approved'),
     ]
 
-    placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE, related_name='weekly_logs')
+    placement = models.ForeignKey(InternshipPlacement,
+         on_delete=models.CASCADE, related_name='weekly_logs')
 
     student = models.ForeignKey(
       'CustomUser',
@@ -69,4 +71,3 @@ class WeeklyLog(models.Model):
 
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
-
