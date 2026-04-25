@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 
 
 class CustomUser(AbstractUser):
+    '''Custom user model with roles for internship system'''
     ROLE_CHOICES = (
         ('student', 'Student'),
         ('work_supervisor', 'Workplace Supervisor'),
@@ -15,10 +16,10 @@ class CustomUser(AbstractUser):
 
     def  __str__(self):
         return  str(self.username)
-    
+
     class Meta:
         verbose_name = "Custom User"
-        verbose_name_plural = "Custom Users"             
+        verbose_name_plural = "Custom Users"
 class InternshipPlacement(models.Model):
     student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
     organization_name = models.CharField(max_length=255)
@@ -33,13 +34,13 @@ class InternshipPlacement(models.Model):
     academic_supervisor_email = models.EmailField()
     workplace_supervisor_name = models.CharField(max_length=255)
     workplace_supervisor_email = models.EmailField()
-    
+
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.student.username } - {self.organization_name}"
-    
+
 
 class WeeklyLog(models.Model):
     STATUS_CHOICES = [
@@ -54,7 +55,7 @@ class WeeklyLog(models.Model):
     student = models.ForeignKey(
       'CustomUser',
       on_delete=models.CASCADE,
-      limit_choices_to={'role': 'student'} 
+      limit_choices_to={'role': 'student'}
     )
 
  # ForeignKeys link your model to the work your team already did
@@ -68,4 +69,4 @@ class WeeklyLog(models.Model):
 
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
-    
+
