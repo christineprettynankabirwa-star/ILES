@@ -1,3 +1,4 @@
+'''Models for the internship management system, including CustomUser, InternshipPlacement, and WeeklyLog. These models define the structure of the database tables and the relationships between them.'''
 # pylint: disable=no-member
 from django.db import models
 from django.contrib.auth.models import AbstractUser
