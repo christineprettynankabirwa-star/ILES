@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, InternshipPlacement, WeeklyLog, EvaluationCriteria
+from .models import CustomUser, InternshipPlacement, WeeklyLog, EvaluationCriteria,Evaluation
 
 # --- Custom User Admin ---
 class CustomUserAdmin(UserAdmin):
@@ -47,3 +47,10 @@ class EvaluationCriteriaAdmin(admin.ModelAdmin):
     list_display = ('name', 'description')
     search_fields = ('title',)
 admin.site.register(EvaluationCriteria, EvaluationCriteriaAdmin)
+#--------Evaluation----------------
+#--------Evaluation Admin(FIXED----------------
+class EvaluationAdmin(admin.ModelAdmin):
+    list_display = ('student', 'placement', 'criteria', 'score', 'date_evaluated')
+    list_filter = ('placement', 'criteria')
+    search_fields = ('student__username',)
+admin.site.register(Evaluation, EvaluationAdmin)
