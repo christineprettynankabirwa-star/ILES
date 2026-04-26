@@ -18,6 +18,6 @@ class InternshipPlacementSerializer(serializers.ModelSerializer):
 # for Evaluation
 from .models import Evaluation, EvaluationCriteria
 class EvaluationCriteriaSerilizer(serializers.ModelSerializer):
-   clas  Meta:
+   class Meta:
    model = EvaluationCriteria
    fields = '__all__'
