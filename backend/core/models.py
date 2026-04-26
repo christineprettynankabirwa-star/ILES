@@ -76,3 +76,12 @@ class WeeklyLog(models.Model):
 
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
+class EvaluationCriteria(models.Model):
+    '''Model representing evaluation criteria for internship placements'''
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    max_score = models.IntegerFieldField()
+
+    
+    def __str__(self):
+        return f"{self.title} - {self.max_score}marks"
