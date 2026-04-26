@@ -44,7 +44,7 @@ admin.site.register(WeeklyLog, WeeklyLogAdmin)
 #-------EvaluationCriteria---------------
 #-------Criteria Admin-------------------
 class EvaluationCriteriaAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description')
+    list_display = ('title', 'description', 'max_score')
     search_fields = ('title',)
 admin.site.register(EvaluationCriteria, EvaluationCriteriaAdmin)
 #--------Evaluation----------------

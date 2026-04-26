@@ -80,7 +80,7 @@ class EvaluationCriteria(models.Model):
     '''Model representing evaluation criteria for internship placements'''
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    max_score = models.IntegerFieldField()
+    max_score = models.IntegerField()
 
     
     def __str__(self):
