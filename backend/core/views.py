@@ -21,3 +21,15 @@ class InternshipPlacementListCreateAPIView(ListCreateAPIView):
     queryset = InternshipPlacement.objects.all()
     serializer_class = InternshipPlacementSerializer 
 
+#creating EvaluationCriteria API view and that of Evaluation 
+from .models import Evaluation, EvaluationCriteria
+from .serializers import EvaluationSerializer, EvaluationCriteriaSerializer
+from rest_framework.generics import ListCreateAPIView
+
+class EvaluationListCreateAPIView(ListCreateAPIView):
+    queryset = Evaluation.objects.all()
+    serializer_class = EvaluationCriteriaSerializer
+
+class EvaluationCriteriaListCreateAPIView(ListCreateAPIView):
+    queryset = EvaluationCriteria.objects.all()
+    serializer_class = EvaluationCriteriaSerializer
