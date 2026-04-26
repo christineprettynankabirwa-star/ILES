@@ -85,3 +85,14 @@ class EvaluationCriteria(models.Model):
     
     def __str__(self):
         return f"{self.title} - {self.max_score}marks"
+class Evaluation(models.Model):
+    '''Model representing an evaluation for an internship placement'''
+    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
+    placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE, related_name='evaluations')
+    criteria = models.ForeignKey(EvaluationCriteria, on_delete=models.CASCADE)
+    score = models.IntegerField()
+    supervisor_comments = models.TextField(blank=True)
+    date_evaluated = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.placement.student.username} - {self.criteria.title}: {self.score} marks"
