@@ -88,7 +88,7 @@ class EvaluationCriteria(models.Model):
         return f"{self.title} - {self.max_score}marks"
 class Evaluation(models.Model):
     '''Model representing an evaluation for an internship placement'''
-    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
+    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
     placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE, related_name='evaluations')
     criteria = models.ForeignKey(EvaluationCriteria, on_delete=models.CASCADE)
     score = models.IntegerField()
