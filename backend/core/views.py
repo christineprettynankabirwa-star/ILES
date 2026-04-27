@@ -1,3 +1,18 @@
 from django.shortcuts import render
+from rest_framework.generics import ListCreateAPIView
+from .models import WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement
+from .serializers import WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerialiser, InternshipPlacementSerializer
 
-# Create your views here.
+class WeeklyLogListCreateAPIView(ListCreateAPIView):
+    queryset = WeeklyLog.objects.all()
+    serializer_class = WeeklyLogSerializer
+
+class InternshipPlacementListCreateAPIView(ListCreateAPIView):
+    queryset = InternshipPlacement.objects.all()
+    serializer_class = InternshipPlacementSerializer
+class EvaluationCriteriaListCreateAPIView(ListCreateAPIView):
+    queryset = EvaluationCriteria.objects.all()
+    serializer_class = EvaluationCriteriaSerializer
+class EvaluationListCreateAPIView(ListCreateAPIView):
+    queryset = Evaluation.objects.all()
+    serializer_class = EvaluationSerialiser
