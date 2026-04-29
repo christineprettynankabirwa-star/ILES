@@ -50,7 +50,9 @@ class WeeklyLog(models.Model):
         ('submitted', 'Submitted'),
         ('reviewed', 'Reviewed'),
         ('approved', 'Approved'),
+ 
     ]
+
 
     placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE, related_name='weekly_logs')
 
@@ -71,11 +73,11 @@ class WeeklyLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     submitted_at = models.DateTimeField(null=True, blank=True)
 
+
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
     
-    
-def clean(self):
+    def clean(self):
         # 1. Define the Deadline 7 days 
        submission_deadline = self.week_start_date + timedelta(days=7)
 
@@ -83,11 +85,12 @@ def clean(self):
        if self.status == 'submitted' and timezone.now().date() > submission_deadline:
         raise ValidationError(f"The submission deadline for Week {self.week_number} has passed.")
 
-    # 3. Prevent Future Submissions 
+           # 3. Prevent Future Submissions 
        if self.status == 'submitted' and self.week_start_date > timezone.now().date():
-        raise ValidationError("You cannot submit a log for a week that hasn't started yet.")
+         raise ValidationError("You cannot submit a log for a week that hasn't started yet.")
     
-def save(self, *args, **kwargs):
+    
+    def save(self, *args, **kwargs):
         """
         Handles Week 6 State Transitions and Locking[cite: 15, 142].
         """
