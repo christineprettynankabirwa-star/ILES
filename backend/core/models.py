@@ -76,30 +76,24 @@ class WeeklyLog(models.Model):
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
     
+    dclass WeeklyLog(models.Model):
+    # ... (keep your fields as they are) ...
+
     def clean(self):
-        # 1. Define the Deadline 7 days 
-       submission_deadline = self.week_start_date + timedelta(days=7)
+       
+        # 1. Deadline enforcement logic
+        if self.week_start_date:
+            submission_deadline = self.week_start_date + timedelta(days=7)
+            if self.status == 'submitted' and timezone.now().date() > submission_deadline:
+                raise ValidationError(f"The submission deadline for Week {self.week_number} has passed.")
 
-       # 2. Enforce the Deadline 
-       if self.status == 'submitted' and timezone.now().date() > submission_deadline:
-        raise ValidationError(f"The submission deadline for Week {self.week_number} has passed.")
-
-           # 3. Prevent Future Submissions 
-       if self.status == 'submitted' and self.week_start_date > timezone.now().date():
-         raise ValidationError("You cannot submit a log for a week that hasn't started yet.")
-    
-    
-    def save(self, *args, **kwargs):
-        """
-        Handles Week 6 State Transitions and Locking[cite: 15, 142].
-        """
-        if self.pk:  # If updating an existing record
+        # 2. Lock editing logic 
+        if self.pk:  # Check if this is an existing record
             original = WeeklyLog.objects.get(pk=self.pk)
-            
-            # Lock editing: Prevent modifications if the log is already approved 
-            if original.status == 'approved':
+        if original.status == 'approved':
                 raise ValidationError("This log has been approved and can no longer be edited.")
 
-        # Run the clean() method validation before saving to the database
-        self.full_clean()
+    def save(self, *args, **kwargs):
+       
+        self.full_clean()  # This ensures clean() is called before saving
         super().save(*args, **kwargs)
