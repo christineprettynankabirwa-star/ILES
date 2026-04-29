@@ -50,8 +50,7 @@ class WeeklyLog(models.Model):
         ('submitted', 'Submitted'),
         ('reviewed', 'Reviewed'),
         ('approved', 'Approved'),
- 
-    ]
+     ]
 
 
     placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE, related_name='weekly_logs')
