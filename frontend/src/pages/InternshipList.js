@@ -5,7 +5,7 @@ function InternshipList() {
     const [internships, setInternships] = useState([]);
 
     useEffect(()=> {
-        axios.get("http://127.0.0.1:8000/api/internships/")
+        axios.get("http://127.0.0.1:8000/api/internshipplacements/")
         .then(response => {
             setInternships(response.data);
         })
