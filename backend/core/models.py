@@ -1,6 +1,7 @@
 '''Models for the internship management system, including CustomUser, InternshipPlacement, and WeeklyLog. These models define the structure of the database tables and the relationships between them.'''
 # pylint: disable=no-member
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 
@@ -50,7 +51,7 @@ class InternshipPlacement(models.Model):
         #date validation 
         if self.start_date and self.end_date:
             if self.start_date >= self.end_date:
-                raise ValidationError("Start date must be before end date.")
+                raise ValidationError("incorrect date: The internship cannot end before it starts.")
             
             #avoid overlapping placements
             overlapping_placements = InternshipPlacement.objects.filter(
