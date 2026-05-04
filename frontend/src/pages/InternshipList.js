@@ -22,13 +22,13 @@ function InternshipList() {
             {internships.length === 0 ? (
                 <p>No internships found.</p>
             ) :(
-                <u1>
+                <ul>
                     {internships.map(internship => (
                         <li key={internship.id}>
                             {internship.company_name} - {internship.position}
                         </li>
                     ))}
-                </u1>
+                </ul>
             )}
             </div> 
         );  
