@@ -1,21 +1,18 @@
 from django.shortcuts import render
-from rest_framework import viewsets, serializers
-from .models import WeeklyLog
-from .serializers import WeeklyLogSerializer
+from rest_framework.generics import ListCreateAPIView
+from .models import WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement
+from .serializers import WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerialiser, InternshipPlacementSerializer
 
-class WeeklyLogViewSet(viewsets.ModelViewSet):
+class WeeklyLogListCreateAPIView(ListCreateAPIView):
     queryset = WeeklyLog.objects.all()
     serializer_class = WeeklyLogSerializer
 
-    def perform_update(self, serializer):
-        # Retrieve the current log from the database before saving changes
-        instance = self.get_object()
-        
-        # Logic: If the log is already 'Submitted' or 'Approved', block updates
-        if instance.status in ['Submitted', 'Approved']:
-            raise serializers.ValidationError(
-                "This log has already been submitted or approved and cannot be edited."
-            )
-        
-        serializer.save()
-# Create your views here.
+class InternshipPlacementListCreateAPIView(ListCreateAPIView):
+    queryset = InternshipPlacement.objects.all()
+    serializer_class = InternshipPlacementSerializer
+class EvaluationCriteriaListCreateAPIView(ListCreateAPIView):
+    queryset = EvaluationCriteria.objects.all()
+    serializer_class = EvaluationCriteriaSerializer
+class EvaluationListCreateAPIView(ListCreateAPIView):
+    queryset = Evaluation.objects.all()
+    serializer_class = EvaluationSerialiser
