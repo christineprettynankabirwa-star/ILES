@@ -24,6 +24,7 @@ class CustomUser(AbstractUser):
         '''Meta definition for CustomUser model'''
         verbose_name = "Custom User"
         verbose_name_plural = "Custom Users"
+
 class InternshipPlacement(models.Model):
     '''Model representing an internship placement'''
     student = models.ForeignKey('CustomUser',
@@ -44,6 +45,22 @@ class InternshipPlacement(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # validation logic
+    def clean(self):
+        #date validation 
+        if self.start_date and self.end_date:
+            if self.start_date >= self.end_date:
+                raise ValidationError("Start date must be before end date.")
+            
+            #avoid overlapping placements
+            overlapping_placements = InternshipPlacement.objects.filter(
+                student=self.student,
+                start_date__lt=self.end_date,
+                end_date__gt=self.start_date
+            ).exclude(pk=self.pk)
+            if overlapping_placements.exists():
+                raise ValidationError("This student already has an internship placement during this period.")
+            
     def __str__(self):
         return f"{self.student.username} - {self.organization_name}"
 
