@@ -7,6 +7,7 @@ function InternshipList() {
     useEffect(()=> {
         axios.get("http://127.0.0.1:8000/api/internshipplacements/")
         .then(response => {
+            console.log("API RESPONSE:", response.data);
             setInternships(response.data.results);
         })
         .catch(error => {
