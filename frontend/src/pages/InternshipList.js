@@ -23,9 +23,9 @@ function InternshipList() {
                 <p>No internships found.</p>
             ) :(
                 <ul>
-                    {internships.results && internships.results.map((item) => (
+                    {internships.map((item) => (
                         <li key={item.id}>
-                            <strong>Organization:</strong> {ClipboardItem.organisation_name}
+                            <strong>Organization:</strong> {item.organization_name}
                         </li>
                     ))}
                 </ul>
