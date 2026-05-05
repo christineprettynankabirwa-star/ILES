@@ -101,3 +101,29 @@ class Evaluation(models.Model):
 
     def __str__(self):
         return f"{self.placement.student.username} - {self.criteria.title}: {self.score} marks"
+    
+    
+
+    def clean(self):
+        """
+        Week 6: Centralized Validation logic.
+        This allows Django Admin to show nice red error messages[cite: 33, 135].
+        """
+        # 1. Deadline enforcement logic
+        if self.week_start_date:
+            submission_deadline = self.week_start_date + timedelta(days=7)
+            if self.status == 'submitted' and timezone.now().date() > submission_deadline:
+                raise ValidationError(f"The submission deadline for Week {self.week_number} has passed.")
+
+        # 2. Lock editing logic (MOVED FROM SAVE)
+        if self.pk:  # Check if this is an existing record
+            original = WeeklyLog.objects.get(pk=self.pk)
+            if original.status == 'approved':
+                raise ValidationError("This log has been approved and can no longer be edited.")
+
+    def save(self, *args, **kwargs):
+        """
+        Simplified save method that triggers the clean() logic[cite: 193].
+        """
+        self.full_clean()  # This ensures clean() is called before saving
+        super().save(*args, **kwargs)
