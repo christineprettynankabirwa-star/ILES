@@ -16,21 +16,32 @@ function InternshipList() {
     }, []);
 
     return (
-        <div>
+        <div style={{ padding: "20px "}}>
             <h2>Internship Placements</h2>
 
             {internships.length === 0 ? (
                 <p>No internships found.</p>
-            ) :(
-                <ul>
-                    {internships.map((item) => (
-                        <li key={item.id}>
-                            <strong>Organization:</strong> {item.organization_name}
-                        </li>
-                    ))}
-                </ul>
-            )}
-            </div> 
+            ) : (
+                internships.map(internship => (
+                    <div
+                        key={internship.id}
+                        style={{
+                            border: "1px solid #ccc",
+                            padding: "15px",
+                            marginBottom: "15px",
+                            borderRadius: "8px"
+                        }}
+                    >
+                        <h3>{internship.organization_name}</h3>
+                        <p><strong>Position:</strong> {internship.position}</p>
+                        <p><strong>Location:</strong> {internship.location}</p>
+                        <p><strong>Duration:</strong> {internship.duration}</p>
+                        <p><strong>Stipend:</strong> {internship.stipend}</p>
+                        <p>{internship.description}</p>
+                        </div>
+                    ))
+                )}
+            </div>
         );  
 }
 
