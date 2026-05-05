@@ -1,8 +1,11 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
+
+
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
@@ -45,7 +48,33 @@ class InternshipPlacement(models.Model):
     workplace_supervisor_email = models.EmailField()
     
     is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)# ... existing fields (student, company, etc.) ...
+    total_score = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
+    final_grade = models.CharField(max_length=2, blank=True)
+
+    def calculate_final_performance(self):
+        """
+        Implements weighted scoring logic:
+        Technical (40%), Attendance (30%), Behavior (30%)
+        """
+        evals = self.evaluations.all()
+        scores = {e.criteria.title.lower(): e.score for e in evals}
+        
+        # Mapping weights (Assumes criteria titles match these keys)
+        tech_score = scores.get('technical', 0) * 0.40
+        attn_score = scores.get('attendance', 0) * 0.30
+        behave_score = scores.get('behavior', 0) * 0.30
+        
+        self.total_score = tech_score + attn_score + behave_score
+        
+        # Auto-calculate Grade
+        if self.total_score >= 80: self.final_grade = 'A'
+        elif self.total_score >= 70: self.final_grade = 'B'
+        elif self.total_score >= 60: self.final_grade = 'C'
+        else: self.final_grade = 'F'
+        
+        self.save()
+
 
     # validation logic
     def clean(self):
@@ -145,6 +174,19 @@ class Evaluation(models.Model):
     total_weighted_score = models.FloatField(editable=False, default=0.0)
     supervisor_comments = models.TextField(blank=True)
     date_evaluated = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        # PREVENT DOUBLE SUBMISSION: 
+        # Ensures one evaluation per student, per placement, per criteria.
+        unique_together = ('student', 'placement', 'criteria')
+
+    def clean(self):
+        # DATA VALIDATION: Ensure score does not exceed max_score
+        if self.score > self.criteria.max_score:
+            raise ValidationError(f"Score cannot exceed {self.criteria.max_score} for {self.criteria.title}.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean() # Force validation on save
+        super().save(*args, **kwargs)
 
     def clean(self):
         # Validation to ensure scores are within a 0-100 range 
