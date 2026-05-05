@@ -30,6 +30,13 @@ class InternshipPlacement(models.Model):
     on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
     organization_name = models.CharField(max_length=255)
     registration_number = models.CharField(max_length=100)
+
+    position = models.CharField(max_length=255)
+    location = models.CharField(max_length=255)
+    duration = models.CharField(max_length=100)
+    stipend = models.CharField(max_length=100)
+    description = models.TextField()
+
     course = models.CharField(max_length=255)
     start_date = models.DateField()
     end_date = models.DateField()
