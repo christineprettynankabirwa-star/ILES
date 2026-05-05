@@ -23,7 +23,7 @@ function InternshipList() {
                 <p>No internships found.</p>
             ) :(
                 <ul>
-                    {internships.map(internship => (
+                    {internships.results && internships.results.map((internship) => (
                         <li key={internship.id}>
                             {internship.company_name} - {internship.position}
                         </li>
