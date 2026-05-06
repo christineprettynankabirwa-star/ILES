@@ -3,6 +3,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+from datetime import timedelta
+from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 
 class CustomUser(AbstractUser):
@@ -81,29 +84,7 @@ class WeeklyLog(models.Model):
 
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
-class EvaluationCriteria(models.Model):
-    '''Model representing evaluation criteria for internship placements'''
-    title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    max_score = models.IntegerField()
-
     
-    def __str__(self):
-        return f"{self.title} - {self.max_score}marks"
-class Evaluation(models.Model):
-    '''Model representing an evaluation for an internship placement'''
-    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
-    placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE, related_name='evaluations')
-    criteria = models.ForeignKey(EvaluationCriteria, on_delete=models.CASCADE)
-    score = models.IntegerField()
-    supervisor_comments = models.TextField(blank=True)
-    date_evaluated = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.placement.student.username} - {self.criteria.title}: {self.score} marks"
-    
-
-
     def clean(self):
         """
         Week 6: Centralized Validation logic.
@@ -126,3 +107,29 @@ class Evaluation(models.Model):
         """
         self.full_clean()  
         super().save(*args, **kwargs)
+
+class EvaluationCriteria(models.Model):
+    '''Model representing evaluation criteria for internship placements'''
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    max_score = models.IntegerField()
+
+    
+    def __str__(self):
+        return f"{self.title} - {self.max_score}marks"
+    
+class Evaluation(models.Model):
+    '''Model representing an evaluation for an internship placement'''
+    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
+    placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE, related_name='evaluations')
+    criteria = models.ForeignKey(EvaluationCriteria, on_delete=models.CASCADE)
+    score = models.IntegerField()
+    supervisor_comments = models.TextField(blank=True)
+    date_evaluated = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.placement.student.username} - {self.criteria.title}: {self.score} marks"
+    
+
+
+    
