@@ -104,3 +104,10 @@ class Evaluation(models.Model):
 
     def __str__(self):
         return f"{self.placement.student.username} - {self.criteria.title}: {self.score} marks"
+
+# The Issue Model
+class Issue(models.Model):
+    title = models.CharFiled(max_length=200)
+    issue_type = models.CharField(max_length=20, choices=[('Missing Marks', 'Missing Marks'), ('Exam Result', 'Exam Result')])
+    status = models.CharField(max_length=20, default='Open')
+    description = models.TextField()
