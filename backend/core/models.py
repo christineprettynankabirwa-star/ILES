@@ -102,7 +102,7 @@ class Evaluation(models.Model):
     def __str__(self):
         return f"{self.placement.student.username} - {self.criteria.title}: {self.score} marks"
     
-    
+
 
     def clean(self):
         """
@@ -115,7 +115,6 @@ class Evaluation(models.Model):
             if self.status == 'submitted' and timezone.now().date() > submission_deadline:
                 raise ValidationError(f"The submission deadline for Week {self.week_number} has passed.")
 
-        # 2. Lock editing logic (MOVED FROM SAVE)
         if self.pk:  # Check if this is an existing record
             original = WeeklyLog.objects.get(pk=self.pk)
             if original.status == 'approved':
@@ -125,5 +124,5 @@ class Evaluation(models.Model):
         """
         Simplified save method that triggers the clean() logic[cite: 193].
         """
-        self.full_clean()  # This ensures clean() is called before saving
+        self.full_clean()  
         super().save(*args, **kwargs)
