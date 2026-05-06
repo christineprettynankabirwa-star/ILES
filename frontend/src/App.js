@@ -1,5 +1,6 @@
 import React from "react";
 import InternshipList from "./pages/InternshipList";
+import IssueForm from './pages/IssueForm'
 
 function App() {
   return (
