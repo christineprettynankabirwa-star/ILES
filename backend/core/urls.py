@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/internshipplacements/',InternshipPlacementListCreateAPIView.as_view()),
     path('api/evaluationcriteria/',EvaluationCriteriaListCreateAPIView.as_view()),
     path('api/evaluations/',EvaluationListCreateAPIView.as_view()),
+    path('api/', include(router.urls)),
 ]
