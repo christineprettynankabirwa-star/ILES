@@ -17,3 +17,9 @@ class EvaluationSerialiser(serializers.ModelSerializer):
     class Meta:
         model = Evaluation
         fields = '__all__'
+
+#THE ISSUESERIALIZER
+class IssueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Issue
+        fields = '__all__'
