@@ -62,13 +62,13 @@ class Migration(migrations.Migration):
                 ('course', models.CharField(max_length=255)),
                 ('start_date', models.DateField()),
                 ('end_date', models.DateField()),
-                ('academic_supervisor', models.CharField(max_length=255)),
                 ('academic_supervisor_email', models.EmailField(max_length=254)),
                 ('workplace_supervisor_name', models.CharField(max_length=255)),
                 ('workplace_supervisor_email', models.EmailField(max_length=254)),
                 ('is_active', models.BooleanField(default=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('student', models.ForeignKey(limit_choices_to={'role': 'student'}, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('academic_supervisor', models.ForeignKey(limit_choices_to={'role': 'acad_supervisor'}, on_delete=django.db.models.deletion.CASCADE, related_name='supervised_internships', to=settings.AUTH_USER_MODEL)),
+                ('student', models.ForeignKey(limit_choices_to={'role': 'student'}, on_delete=django.db.models.deletion.CASCADE, related_name='student_internships', to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
@@ -94,7 +94,6 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('submitted_at', models.DateTimeField(blank=True, null=True)),
                 ('placement', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='weekly_logs', to='core.internshipplacement')),
-                ('student', models.ForeignKey(limit_choices_to={'role': 'student'}, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
     ]

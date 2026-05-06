@@ -1,6 +1,7 @@
 '''Models for the internship management system, including CustomUser, InternshipPlacement, and WeeklyLog. These models define the structure of the database tables and the relationships between them.'''
 # pylint: disable=no-member
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -26,6 +27,7 @@ class CustomUser(AbstractUser):
         '''Meta definition for CustomUser model'''
         verbose_name = "Custom User"
         verbose_name_plural = "Custom Users"
+
 class InternshipPlacement(models.Model):
     '''Model representing an internship placement'''
     student = models.ForeignKey('CustomUser',
@@ -72,6 +74,22 @@ class InternshipPlacement(models.Model):
         self.save()
 
 
+    # validation logic
+    def clean(self):
+        #date validation 
+        if self.start_date and self.end_date:
+            if self.start_date >= self.end_date:
+                raise ValidationError("incorrect date: The internship cannot end before it starts.")
+            
+            #avoid overlapping placements
+            overlapping_placements = InternshipPlacement.objects.filter(
+                student=self.student,
+                start_date__lt=self.end_date,
+                end_date__gt=self.start_date
+            ).exclude(pk=self.pk)
+            if overlapping_placements.exists():
+                raise ValidationError("This student already has an internship placement during this period.")
+            
     def __str__(self):
         return f"{self.student.username} - {self.organization_name}"
 
@@ -84,6 +102,7 @@ class WeeklyLog(models.Model):
         ('reviewed', 'Reviewed'),
         ('approved', 'Approved'),
     ]
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
 
     placement = models.ForeignKey(InternshipPlacement,
          on_delete=models.CASCADE, related_name='weekly_logs')
