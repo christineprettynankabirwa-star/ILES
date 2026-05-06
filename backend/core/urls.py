@@ -1,10 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter 
-from .views import IssueViewSet,InternshipPlacementViewSet,WeeklyLogListCreateAPIView,EvaluationCriteriaListCreateAPIView,EvaluationListCreateAPIView,InternshipPlacementListCreateAPIView
+from .views import IssueViewSet,WeeklyLogListCreateAPIView,EvaluationCriteriaListCreateAPIView,EvaluationListCreateAPIView,InternshipPlacementListCreateAPIView
 
 router = DefaultRouter()
 router.register(r'issues', IssueViewSet)
-router.register(r'internshipplacements', InternshipPlacementViewSet)
+ #router.register(r'internshipplacements', InternshipPlacementViewSet)
 
 urlpatterns = [
     path('api/weeklylogs/',WeeklyLogListCreateAPIView.as_view()),
