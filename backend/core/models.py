@@ -107,7 +107,7 @@ class Evaluation(models.Model):
 
 # The Issue Model
 class Issue(models.Model):
-    title = models.CharFiled(max_length=200)
+    title = models.CharField(max_length=200)
     issue_type = models.CharField(max_length=20, choices=[('Missing Marks', 'Missing Marks'), ('Exam Result', 'Exam Result')])
     status = models.CharField(max_length=20, default='Open')
     description = models.TextField()
