@@ -1,7 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
-
+from django.utils import timezone
+from datetime import timedelta
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
@@ -84,16 +85,38 @@ class WeeklyLog(models.Model):
     )
 
  # ForeignKeys link your model to the work your team already did
+    week_start_date = models.DateField(null=True, blank=True)
     week_number = models.PositiveIntegerField()
     activities = models.TextField()
     challenges = models.TextField()
+    
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
     created_at = models.DateTimeField(auto_now_add=True)
     submitted_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
-        return f"Week {self.week_number} - {self.placement.student.username}"
+        return f"Week {self.week_number} - {self.placement.student.username} ({self.status})" 
+
+    def clean(self):
+        
+        # 1. Deadline enforcement logic
+        if self.week_start_date:
+            submission_deadline = self.week_start_date + timedelta(days=7)
+            if self.status == 'submitted' and timezone.now().date() > submission_deadline:
+                raise ValidationError(f"The submission deadline for Week {self.week_number} has passed.")
+
+        # 2. Lock editing logic (MOVED FROM SAVE)
+        if self.pk:  # Check if this is an existing record
+            original = WeeklyLog.objects.get(pk=self.pk)
+            if original.status == 'approved':
+                raise ValidationError("This log has been approved and can no longer be edited.")
+
+    def save(self, *args, **kwargs):
+        
+        self.full_clean()  # This ensures clean() is called before saving
+        super().save(*args, **kwargs)
+
 class EvaluationCriteria(models.Model):
     '''Model representing evaluation criteria for internship placements'''
     title = models.CharField(max_length=200)
