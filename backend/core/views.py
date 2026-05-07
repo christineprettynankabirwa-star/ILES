@@ -3,7 +3,8 @@ from rest_framework.generics import ListCreateAPIView
 from .models import WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement, Issue
 from .serializers import WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerialiser, InternshipPlacementSerializer, IssueSerializer
 from rest_framework import viewsets, permissions
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsStudentUser
+
 
 class WeeklyLogListCreateAPIView(ListCreateAPIView):
     queryset = WeeklyLog.objects.all()
@@ -26,6 +27,7 @@ class EvaluationListCreateAPIView(ListCreateAPIView):
 class IssueViewSet(viewsets.ModelViewSet):
     queryset = Issue.objects.all()
     serializer_class = IssueSerializer
+    permission_classes = [IsStudentUser]
 
 # Custom Role-based "Lock"
 class IsStudentuser(permissions.BasePermission):
