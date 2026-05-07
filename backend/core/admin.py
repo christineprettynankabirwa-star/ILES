@@ -1,6 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, InternshipPlacement, WeeklyLog, EvaluationCriteria,Evaluation
+from .models import Issue, CustomUser, InternshipPlacement, WeeklyLog, EvaluationCriteria, Evaluation, LogStatusHistory
+
+
+admin.site.register(Issue)
+admin.site.register(LogStatusHistory)
 
 # --- Custom User Admin ---
 class CustomUserAdmin(UserAdmin):
@@ -20,7 +24,9 @@ class CustomUserAdmin(admin.ModelAdmin):
 admin.site.register(CustomUser, CustomUserAdmin)
 # --- Internship Placement Admin ---
 class InternshipPlacementAdmin(admin.ModelAdmin):
-    search_fields = ['student__username', 'organization_name', 'academic_supervisor__username']
+    list_display = ("organization_name", "position", "location", "duration", "stipend",)
+    search_fields = ['student__username', 'organization_name', 'academic_supervisor__username', 'organization_name', 'position', 'location']
+    list_filter = ("location",)
     fieldsets = (   
         ("Student and university", {
             "fields": ("student", "registration_number", "course", "academic_supervisor"),
@@ -30,7 +36,7 @@ class InternshipPlacementAdmin(admin.ModelAdmin):
             "fields": ("organization_name", "workplace_supervisor_name", "workplace_supervisor_email")
         }),
         ("Placement Duration and status", {
-            "fields": ("start_date", "end_date", "is_active")
+            "fields": ("start_date", "end_date", "is_active", "position", "location", "duration", "stipend", "description",)
         }),
     )
 

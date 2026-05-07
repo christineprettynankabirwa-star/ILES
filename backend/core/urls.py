@@ -1,8 +1,22 @@
-from django.urls import path
-from .views import WeeklyLogListCreateAPIView,EvaluationCriteriaListCreateAPIView,EvaluationListCreateAPIView,InternshipPlacementListCreateAPIView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter 
+from .views import (
+    IssueViewSet, 
+    WeeklyLogViewSet, 
+    EvaluationCriteriaViewSet, 
+    EvaluationViewSet, 
+    InternshipPlacementViewSet
+)
+
+router = DefaultRouter()
+router.register(r'issues', IssueViewSet)
+router.register(r'weekly-logs', WeeklyLogViewSet)
+router.register(r'placements', InternshipPlacementViewSet)
+router.register(r'criteria', EvaluationCriteriaViewSet)
+router.register(r'evaluations', EvaluationViewSet)
+
+
 urlpatterns = [
-    path('api/weeklylogs/',WeeklyLogListCreateAPIView.as_view()),
-    path('api/internshipplacements/',InternshipPlacementListCreateAPIView.as_view()),
-    path('api/evaluationcriteria/',EvaluationCriteriaListCreateAPIView.as_view()),
-    path('api/evaluations/',EvaluationListCreateAPIView.as_view()),
+    # All your API routes are now handled by the router
+    path('', include(router.urls)),
 ]
