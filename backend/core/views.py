@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from rest_framework.generics import ListCreateAPIView
 from .models import WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement
-from .serializers import WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerializer, InternshipPlacementSerializer
+from .serializers import WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerialiser, InternshipPlacementSerializer
+
 class WeeklyLogListCreateAPIView(ListCreateAPIView):
     queryset = WeeklyLog.objects.all()
     serializer_class = WeeklyLogSerializer
@@ -14,4 +15,4 @@ class EvaluationCriteriaListCreateAPIView(ListCreateAPIView):
     serializer_class = EvaluationCriteriaSerializer
 class EvaluationListCreateAPIView(ListCreateAPIView):
     queryset = Evaluation.objects.all()
-    serializer_class = EvaluationSerializer
+    serializer_class = EvaluationSerialiser
