@@ -41,10 +41,7 @@ class EvaluationCriteriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = EvaluationCriteria
         fields = '__all__'
-<<<<<<< HEAD
-        
-=======
->>>>>>> weeklylog-logic
+
 class EvaluationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evaluation
