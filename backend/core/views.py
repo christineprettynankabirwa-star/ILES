@@ -12,13 +12,9 @@ class WeeklyLogListCreateAPIView(ListCreateAPIView):
 
 class InternshipPlacementListCreateAPIView(ListCreateAPIView):
     permission_classes = [AllowAny]
-    queryset = InternshipPlacement.objects.all()
+    queryset = InternshipPlacement.objects.all().order_by('-id')
     serializer_class = InternshipPlacementSerializer
 
-class InternshipPlacementViewSet(viewsets.ModelViewSet):
-    permission_classes = [AllowAny]
-    serializer_class = InternshipPlacementSerializer
-    queryset = InternshipPlacement.objects.all()
 class EvaluationCriteriaListCreateAPIView(ListCreateAPIView):
     queryset = EvaluationCriteria.objects.all()
     serializer_class = EvaluationCriteriaSerializer

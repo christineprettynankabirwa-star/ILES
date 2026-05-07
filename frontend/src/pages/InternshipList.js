@@ -8,7 +8,8 @@ function InternshipList() {
         axios.get("http://127.0.0.1:8000/api/internshipplacements/")
         .then(response => {
             console.log("API RESPONSE:", response.data);
-            setInternships(response.data);
+            const data = response.data.results || response.data;
+            setInternships(data);
         })
         .catch(error => {
             console.error("Error fetching internships:", error);
