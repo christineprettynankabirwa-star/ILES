@@ -5,7 +5,13 @@ function InternshipList() {
     const [internships, setInternships] = useState([]);
 
     useEffect(()=> {
-        axios.get("http://127.0.0.1:8000/api/internshipplacements/")
+        const token = localStorage.getItem('token');
+
+        axios.get("http://127.0.0.1:8000/api/internshipplacements/", {
+            headers: {
+                Authorization: `Token ${token}` 
+            }
+        })
         .then(response => {
             console.log("API RESPONSE:", response.data);
             const data = response.data.results || response.data;
