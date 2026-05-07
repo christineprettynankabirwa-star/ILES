@@ -16,7 +16,8 @@ class InternshipPlacementListCreateAPIView(ListCreateAPIView):
 
 class InternshipPlacementViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-    serializer_class = InternshipPlacementSerializerqueryset = InternshipPlacement.objects.all()
+    serializer_class = InternshipPlacementSerializer
+    queryset = InternshipPlacement.objects.all()
 class EvaluationCriteriaListCreateAPIView(ListCreateAPIView):
     queryset = EvaluationCriteria.objects.all()
     serializer_class = EvaluationCriteriaSerializer
