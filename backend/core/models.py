@@ -94,4 +94,30 @@ class WeeklyLog(models.Model):
 
     def __str__(self):
         return f"Week {self.week_number} - {self.placement.student.username}"
+class EvaluationCriteria(models.Model):
+    '''Model representing evaluation criteria for internship placements'''
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    max_score = models.IntegerField()
+
     
+    def __str__(self):
+        return f"{self.title} - {self.max_score}marks"
+class Evaluation(models.Model):
+    '''Model representing an evaluation for an internship placement'''
+    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
+    placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE, related_name='evaluations')
+    criteria = models.ForeignKey(EvaluationCriteria, on_delete=models.CASCADE)
+    score = models.IntegerField()
+    supervisor_comments = models.TextField(blank=True)
+    date_evaluated = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.placement.student.username} - {self.criteria.title}: {self.score} marks"
+
+# The Issue Model
+class Issue(models.Model):
+    title = models.CharField(max_length=200)
+    issue_type = models.CharField(max_length=20, choices=[('Missing Marks', 'Missing Marks'), ('Exam Result', 'Exam Result')])
+    status = models.CharField(max_length=20, default='Open')
+    description = models.TextField()
