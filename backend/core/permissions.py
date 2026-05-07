@@ -1,6 +1,7 @@
 from rest_framework import permissions
+
 # Custom Role-based "Lock"
-class IsStudentuser(permissions.BasePermission):
+class IsStudentUser(permissions.BasePermission):
     """
     Allows access only to users with the 'student' role.
     """
