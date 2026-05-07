@@ -1,8 +1,15 @@
-from django.urls import path
-from .views import WeeklyLogListCreateAPIView,EvaluationCriteriaListCreateAPIView,EvaluationListCreateAPIView,InternshipPlacementListCreateAPIView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter 
+from .views import IssueViewSet,WeeklyLogListCreateAPIView,EvaluationCriteriaListCreateAPIView,EvaluationListCreateAPIView,InternshipPlacementListCreateAPIView
+
+router = DefaultRouter()
+router.register(r'issues', IssueViewSet)
+ #router.register(r'internshipplacements', InternshipPlacementViewSet)
+
 urlpatterns = [
     path('api/weeklylogs/',WeeklyLogListCreateAPIView.as_view()),
     path('api/internshipplacements/',InternshipPlacementListCreateAPIView.as_view()),
     path('api/evaluationcriteria/',EvaluationCriteriaListCreateAPIView.as_view()),
     path('api/evaluations/',EvaluationListCreateAPIView.as_view()),
+    path('api/', include(router.urls)),
 ]
