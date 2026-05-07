@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from datetime import timedelta
-from django.conf import settings
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
@@ -118,40 +117,6 @@ class WeeklyLog(models.Model):
         self.full_clean()  # This ensures clean() is called before saving
         super().save(*args, **kwargs)
 
-
-class LogStatusHistory(models.Model):
-    """
-    Model to track the 'Audit trail logging' for WeeklyLog status changes.
-    Fulfills the 'Track status history' requirement for Week 7.
-    """
-    # Link to the specific weekly log being tracked
-    weekly_log = models.ForeignKey(
-        WeeklyLog, 
-        on_delete=models.CASCADE, 
-        related_name='status_history'
-    )
-    from_status = models.CharField(max_length=20)
-    to_status = models.CharField(max_length=20)
-    
-    # Track who made the change (Supervisor or Admin)
-    changed_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.SET_NULL, 
-        null=True
-    )
-    changed_at = models.DateTimeField(auto_now_add=True)
-    
-    # Store review comments provided during this specific transition
-    comments = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return f"Week {self.weekly_log.week_number} moved to {self.to_status}"
-
-    class Meta:
-        verbose_name = "Log Status History"
-        verbose_name_plural = "Log Status Histories"
-        ordering = ['-changed_at']
-
 class EvaluationCriteria(models.Model):
     '''Model representing evaluation criteria for internship placements'''
     title = models.CharField(max_length=200)
@@ -162,16 +127,42 @@ class EvaluationCriteria(models.Model):
     def __str__(self):
         return f"{self.title} - {self.max_score}marks"
 class Evaluation(models.Model):
-    '''Model representing an evaluation for an internship placement'''
-    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
-    placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE, related_name='evaluations')
-    criteria = models.ForeignKey(EvaluationCriteria, on_delete=models.CASCADE)
-    score = models.IntegerField()
+    placement = models.OneToOneField(
+        'InternshipPlacement', 
+        on_delete=models.CASCADE, 
+        related_name='evaluation'
+    )
+   
+    academic_supervisor = models.ForeignKey(
+        'CustomUser', 
+        on_delete=models.CASCADE, 
+        limit_choices_to={'role': 'academic_supervisor'}
+    )
+    attendance_punctuality = models.PositiveIntegerField(default=0)  
+    technical_competence = models.PositiveIntegerField(default=0)    
+    quality_of_work = models.PositiveIntegerField(default=0)         
+    
+    total_weighted_score = models.FloatField(editable=False, default=0.0)
     supervisor_comments = models.TextField(blank=True)
     date_evaluated = models.DateTimeField(auto_now_add=True)
 
+    def clean(self):
+        # Validation to ensure scores are within a 0-100 range 
+        for score in [self.attendance_punctuality, self.technical_competence, self.quality_of_work]:
+            if score < 0 or score > 100:
+                raise ValidationError("All scores must be between 0 and 100.")
+
+    def save(self, *args, **kwargs):
+        # Formula: (40% * Score1) + (30% * Score2) + (30% * Score3)
+        self.total_weighted_score = (
+            (self.attendance_punctuality * 0.4) + 
+            (self.technical_competence * 0.3) + 
+            (self.quality_of_work * 0.3)
+        )
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.placement.student.username} - {self.criteria.title}: {self.score} marks"
+        return f"{self.placement.student.username} - Final Score: {self.total_weighted_score}"
 
 # The Issue Model
 class Issue(models.Model):
