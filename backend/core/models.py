@@ -26,7 +26,7 @@ class CustomUser(AbstractUser):
         verbose_name_plural = "Custom Users"
 class InternshipPlacement(models.Model):
     '''Model representing an internship placement'''
-    student = models.ForeignKey('CustomUser',
+    student = models.ForeignKey('CustomUser', related_name='placements', 
     on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
     organization_name = models.CharField(max_length=255)
     registration_number = models.CharField(max_length=100)
