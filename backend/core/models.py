@@ -100,36 +100,22 @@ class WeeklyLog(models.Model):
         return f"Week {self.week_number} - {self.status}"
 
     def clean(self):
-       
-        # 1. Deadline enforcement: Enforce submission deadlines 
+        
+        # 1. Deadline enforcement logic
         if self.week_start_date:
-            # Rule: Logs must be submitted within 7 days of the week_start_date
             submission_deadline = self.week_start_date + timedelta(days=7)
-            
             if self.status == 'submitted' and timezone.now().date() > submission_deadline:
-                raise ValidationError(
-                    f"The submission deadline for Week {self.week_number} has passed."
-                )
+                raise ValidationError(f"The submission deadline for Week {self.week_number} has passed.")
 
-        # 2. Lock editing after approval [cite: 142, 156]
-        if self.pk:  # Only check if the record already exists in the database
-            original_record = WeeklyLog.objects.get(pk=self.pk)
-            if original_record.status == 'approved':
-                raise ValidationError(
-                    "This log has been approved and can no longer be edited."
-                )
+        # 2. Lock editing logic (MOVED FROM SAVE)
+        if self.pk:  # Check if this is an existing record
+            original = WeeklyLog.objects.get(pk=self.pk)
+            if original.status == 'approved':
+                raise ValidationError("This log has been approved and can no longer be edited.")
 
     def save(self, *args, **kwargs):
-        """
-        Overrides save to ensure validation rules are always triggered[cite: 193].
-        """
-        # full_clean() is necessary to trigger the clean() method above
-        self.full_clean()
         
-        # Automatically set submitted_at timestamp when status changes to submitted
-        if self.status == 'submitted' and not self.submitted_at:
-            self.submitted_at = timezone.now()
-            
+        self.full_clean()  # This ensures clean() is called before saving
         super().save(*args, **kwargs)
 
 class EvaluationCriteria(models.Model):
