@@ -127,16 +127,51 @@ class EvaluationCriteria(models.Model):
     def __str__(self):
         return f"{self.title} - {self.max_score}marks"
 class Evaluation(models.Model):
-    '''Model representing an evaluation for an internship placement'''
-    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
-    placement = models.ForeignKey(InternshipPlacement, on_delete=models.CASCADE, related_name='evaluations')
-    criteria = models.ForeignKey(EvaluationCriteria, on_delete=models.CASCADE)
-    score = models.IntegerField()
-    supervisor_comments = models.TextField(blank=True)
-    date_evaluated = models.DateTimeField(auto_now_add=True)
+    '''Model representing the final weighted evaluation for an internship placement'''
+    
+    # Preventing duplicate evaluations for a single placement 
+    placement = models.OneToOneField(
+        'InternshipPlacement', 
+        on_delete=models.CASCADE, 
+        related_name='evaluation'
+    )
+    
+    # Ensuring only supervisors can conduct the evaluation [cite: 40, 41]
+    academic_supervisor = models.ForeignKey(
+        'CustomUser', 
+        on_delete=models.CASCADE, 
+        limit_choices_to={'role__in': ['work_supervisor', 'acad_supervisor']}
+    )
+    
+    # Your defined scoring fields (Out of 100) [cite: 184]
+   # Line 147
+class Evaluation(models.Model):
+    # Ensure there are 4 spaces (or one tab) before these lines!
+    attendance_score = models.FloatField(default=0)
+    performance_score = models.FloatField(default=0)
+    initiative_score = models.FloatField(default=0)
+    total_score = models.FloatField(editable=False, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        # Weighted formula logic for Week 9
+        self.total_score = (
+            (self.attendance_score * 0.4) + 
+            (self.performance_score * 0.3) + 
+            (self.initiative_score * 0.3)
+        )
+        super(Evaluation, self).save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        # Weighted formula: 40% Attendance, 30% Performance, 30% Initiative 
+        self.total_score = (
+            (self.attendance_score * 0.4) + 
+            (self.performance_score * 0.3) + 
+            (self.initiative_score * 0.3)
+        )
+        # Using save override to automate the calculation [cite: 187, 193]
+        super(Evaluation, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.placement.student.username} - {self.criteria.title}: {self.score} marks"
+        return f"{self.placement.student.username} - Final Score: {self.total_score}"
 
 # The Issue Model
 class Issue(models.Model):
