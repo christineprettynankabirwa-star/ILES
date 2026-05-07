@@ -9,7 +9,7 @@ class CustomUserAdmin(UserAdmin):
     model = CustomUser
     list_display = ("username", "email", "role", "is_staff", "is_superuser")
     fieldsets = UserAdmin.fieldsets + (
-        ("Role Information", {"fields": ("role", "university_id")}),
+        ("Role Information and Permissions", {"fields": ("role", "university_id")}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
         ("Role Information", {"fields": ("role", "university_id")}),
