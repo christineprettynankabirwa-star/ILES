@@ -3,6 +3,7 @@ from rest_framework.generics import ListCreateAPIView
 from .models import WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement, Issue
 from .serializers import WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerialiser, InternshipPlacementSerializer, IssueSerializer
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 
 class WeeklyLogListCreateAPIView(ListCreateAPIView):
     queryset = WeeklyLog.objects.all()
@@ -11,6 +12,9 @@ class WeeklyLogListCreateAPIView(ListCreateAPIView):
 class InternshipPlacementListCreateAPIView(ListCreateAPIView):
     queryset = InternshipPlacement.objects.all()
     serializer_class = InternshipPlacementSerializer
+
+class InternshipPlacementViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
 class EvaluationCriteriaListCreateAPIView(ListCreateAPIView):
     queryset = EvaluationCriteria.objects.all()
     serializer_class = EvaluationCriteriaSerializer
