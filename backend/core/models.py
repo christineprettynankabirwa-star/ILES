@@ -117,6 +117,40 @@ class WeeklyLog(models.Model):
         self.full_clean()  # This ensures clean() is called before saving
         super().save(*args, **kwargs)
 
+
+class LogStatusHistory(models.Model):
+    """
+    Model to track the 'Audit trail logging' for WeeklyLog status changes.
+    Fulfills the 'Track status history' requirement for Week 7.
+    """
+    # Link to the specific weekly log being tracked
+    weekly_log = models.ForeignKey(
+        WeeklyLog, 
+        on_delete=models.CASCADE, 
+        related_name='status_history'
+    )
+    from_status = models.CharField(max_length=20)
+    to_status = models.CharField(max_length=20)
+    
+    # Track who made the change (Supervisor or Admin)
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True
+    )
+    changed_at = models.DateTimeField(auto_now_add=True)
+    
+    # Store review comments provided during this specific transition
+    comments = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Week {self.weekly_log.week_number} moved to {self.to_status}"
+
+    class Meta:
+        verbose_name = "Log Status History"
+        verbose_name_plural = "Log Status Histories"
+        ordering = ['-changed_at']
+
 class EvaluationCriteria(models.Model):
     '''Model representing evaluation criteria for internship placements'''
     title = models.CharField(max_length=200)
