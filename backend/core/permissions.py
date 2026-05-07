@@ -1,4 +1,4 @@
-
+from rest_framework import permissions
 # Custom Role-based "Lock"
 class IsStudentuser(permissions.BasePermission):
     """
