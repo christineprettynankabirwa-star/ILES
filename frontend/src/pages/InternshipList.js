@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -21,7 +20,7 @@ function InternshipList() {
             <h2>Internship Placements</h2>
 
             {internships.length === 0 ? (
-                <p>No internships found.</p>
+                <p>No internships found (Check if you are logged in!).</p>
             ) : (
                 internships.map(internship => (
                     <div
