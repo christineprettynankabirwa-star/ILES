@@ -1,70 +1,48 @@
-from rest_framework import serializers
-from django.contrib.auth.models import User
-from .models import WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement, Issue, LogStatusHistory
+from django.db.models.signals import pre_save, post_save
+from django.dispatch import receiver
+from .models import WeeklyLog, LogStatusHistory
 
-class UserSerializer(serializers.ModelSerializer):
-    # Field to capture role from the React frontend dropdown
-    role = serializers.CharField(write_only=True, required=False)
+@receiver(pre_save, sender=WeeklyLog)
+def capture_old_status(sender, instance, **kwargs):
+    """
+    Captures the status before the model is saved to determine 
+    if a transition occurred.
+    """
+    if instance.pk:
+        try:
+            # We fetch the current state from the database 
+            # to compare it with the incoming 'instance' state.
+            old_instance = WeeklyLog.objects.get(pk=instance.pk)
+            instance._old_status = old_instance.status
+        except WeeklyLog.DoesNotExist:
+            instance._old_status = None
+    else:
+        # If it's a brand new log, there is no old status.
+        instance._old_status = None
 
-    class Meta:
-        model = User
-        fields = ['id', 'username', 'email', 'password', 'role']
-        extra_kwargs = {'password': {'write_only': True}}
+@receiver(post_save, sender=WeeklyLog)
+def create_status_history(sender, instance, created, **kwargs):
+    """
+    Fulfills: 'Track status history' and 'Audit trail logging'.
+    Saves a record to LogStatusHistory whenever the status changes.
+    """
+    old_status = getattr(instance, '_old_status', None)
+    new_status = instance.status
 
-    def create(self, validated_data):
-        # Extracts role to prevent 'Signup failed' if the User model doesn't have a 'role' field
-        role = validated_data.pop('role', 'student')
-        user = User.objects.create_user(**validated_data)
-        # Role assignment logic can be handled here or in the signup_view
-        return user
+    # 1. Logic: Only create a history record if the status has actually changed
+    if old_status != new_status:
+        
+       #status change feedback is either the supervisor's comments or a default message
+        feedback = getattr(instance, 'supervisor_comments', None)
+        if not feedback:
+            feedback = f"Status transitioned from {old_status or 'New'} to {new_status}."
 
-class IssueSerializer(serializers.ModelSerializer):
-    student_name = serializers.CharField(source='student.username', read_only=True)
-
-    class Meta:
-        model = Issue
-        fields = ['id', 'student', 'student_name', 'issue_description', 'status', 'created_at']
-        # Set student to read_only to prevent 'Failed to submit' if not sent from React
-        read_only_fields = ['student', 'status', 'created_at']
-
-class WeeklyLogSerializer(serializers.ModelSerializer):
-    student_name = serializers.CharField(source='student.username', read_only=True)
-    
-    class Meta:
-        model = WeeklyLog
-        fields = '__all__'
-        read_only_fields = ['student', 'created_at', 'updated_at']
-
-    def update(self, instance, validated_data):
-        """
-        Critical for Signals: Passes the logged-in user to the pre_save/post_save signals.
-        """
-        # Attach the user from the request context to the instance
-        instance._changed_by = self.context['request'].user
-        return super().update(instance, validated_data)
-
-class InternshipPlacementSerializer(serializers.ModelSerializer):
-    student_name = serializers.CharField(source='student.username', read_only=True)
-    academic_supervisor_name = serializers.CharField(source='academic_supervisor.username', read_only=True)
-    workplace_supervisor_name = serializers.CharField(source='workplace_supervisor.username', read_only=True)
-
-    class Meta:
-        model = InternshipPlacement
-        fields = '__all__'
-
-class LogStatusHistorySerializer(serializers.ModelSerializer):
-    changed_by_name = serializers.CharField(source='changed_by.username', read_only=True)
-
-    class Meta:
-        model = LogStatusHistory
-        fields = ['id', 'from_status', 'to_status', 'comments', 'changed_at', 'changed_by_name']
-
-class EvaluationCriteriaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EvaluationCriteria
-        fields = '__all__'
-
-class EvaluationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Evaluation
-        fields = '__all__'
+        LogStatusHistory.objects.create(
+            weekly_log=instance,
+            from_status=old_status if old_status else "initial",
+            to_status=new_status,
+            comments=feedback,
+            
+           # value for changed_by is set to the user who made the change, which should be attached to the instance before saving
+            changed_by=getattr(instance, '_changed_by', None)
+        )
