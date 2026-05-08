@@ -11,14 +11,12 @@ admin.site.register(LogStatusHistory)
 admin.site.register(EvaluationCriteria)
 
 # --- 2. Fixed Custom User Admin ---
-# Merged your two previous versions into one to fix "Already Registered" warnings
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
     list_display = ("username", "email", "role", "is_staff", "is_superuser")
     search_fields = ("username", "email")
     list_filter = ("role", "is_staff", "is_superuser")
     
-    # Adding role and university_id to the admin edit forms
     fieldsets = UserAdmin.fieldsets + (
         ("Role Information and Permissions", {"fields": ("role", "university_id")}),
     )
@@ -30,6 +28,7 @@ admin.site.register(CustomUser, CustomUserAdmin)
 
 # --- 3. Internship Placement Admin ---
 class InternshipPlacementAdmin(admin.ModelAdmin):
+    # Added scoring fields for Week 9 & 10 visibility
     list_display = ("organization_name", "position", "location", "duration", "total_score", "final_grade")
     search_fields = ['student__username', 'organization_name', 'position']
     list_filter = ("location", "final_grade")
@@ -52,7 +51,6 @@ admin.site.register(InternshipPlacement, InternshipPlacementAdmin)
 
 # --- 4. Weekly Log Admin ---
 class WeeklyLogAdmin(admin.ModelAdmin):
-    # Using 'student' directly as defined in your WeeklyLog model
     list_display = ('get_student_name', 'week_number', 'status', 'created_at')
     list_filter = ('status', 'week_number')
     search_fields = ('student__username', 'activities')
@@ -73,7 +71,7 @@ class EvaluationAdmin(admin.ModelAdmin):
         'total_weighted_score', 
         'date_evaluated'
     )
-    list_filter = ('placement', 'date_evaluated')
+    list_filter = ('date_evaluated',)
     search_fields = ('placement__student__username',)
     readonly_fields = ('total_weighted_score',)
 

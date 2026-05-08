@@ -5,7 +5,8 @@ from .views import (
     WeeklyLogViewSet, 
     EvaluationCriteriaViewSet, 
     EvaluationViewSet, 
-    InternshipPlacementViewSet
+    InternshipPlacementViewSet,
+    DashboardStatsView
 )
 
 router = DefaultRouter()
@@ -19,4 +20,5 @@ router.register(r'evaluations', EvaluationViewSet)
 urlpatterns = [
     # All your API routes are now handled by the router
     path('', include(router.urls)),
+    path('api/dashboard-stats/', DashboardStatsView.as_view(), name='dashboard-stats'),
 ]
