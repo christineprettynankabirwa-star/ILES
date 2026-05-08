@@ -1,8 +1,9 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 from django.utils import timezone
-from datetime import timedeltafrom django.core.exceptions import ValidationError
+from datetime import timedelta
 
 
 
@@ -26,7 +27,9 @@ class CustomUser(AbstractUser):
 
         
 class InternshipPlacement(models.Model):
-    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
+    '''Model representing an internship placement'''
+    student = models.ForeignKey('CustomUser', related_name='placements', 
+    on_delete=models.CASCADE, limit_choices_to={'role': 'student'})
     organization_name = models.CharField(max_length=255)
     registration_number = models.CharField(max_length=100)
 
@@ -155,48 +158,24 @@ class EvaluationCriteria(models.Model):
     def __str__(self):
         return f"{self.title} - {self.max_score}marks"
 class Evaluation(models.Model):
-    '''Model representing the final weighted evaluation for an internship placement'''
-    
-    # Preventing duplicate evaluations for a single placement 
     placement = models.OneToOneField(
         'InternshipPlacement', 
         on_delete=models.CASCADE, 
         related_name='evaluation'
     )
-    
-    # Ensuring only supervisors can conduct the evaluation [cite: 40, 41]
+   
     academic_supervisor = models.ForeignKey(
         'CustomUser', 
         on_delete=models.CASCADE, 
-        limit_choices_to={'role__in': ['work_supervisor', 'acad_supervisor']}
+        limit_choices_to={'role': 'academic_supervisor'}
     )
+    attendance_punctuality = models.PositiveIntegerField(default=0)  
+    technical_competence = models.PositiveIntegerField(default=0)    
+    quality_of_work = models.PositiveIntegerField(default=0)         
     
-    # Your defined scoring fields (Out of 100) [cite: 184]
-   # Line 147
-class Evaluation(models.Model):
-    # Ensure there are 4 spaces (or one tab) before these lines!
-    attendance_score = models.FloatField(default=0)
-    performance_score = models.FloatField(default=0)
-    initiative_score = models.FloatField(default=0)
-    total_score = models.FloatField(editable=False, null=True, blank=True)
-
-    def save(self, *args, **kwargs):
-        # Weighted formula logic for Week 9
-        self.total_score = (
-            (self.attendance_score * 0.4) + 
-            (self.performance_score * 0.3) + 
-            (self.initiative_score * 0.3)
-        )
-        super(Evaluation, self).save(*args, **kwargs)
-    def save(self, *args, **kwargs):
-        # Weighted formula: 40% Attendance, 30% Performance, 30% Initiative 
-        self.total_score = (
-            (self.attendance_score * 0.4) + 
-            (self.performance_score * 0.3) + 
-            (self.initiative_score * 0.3)
-        )
-        # Using save override to automate the calculation [cite: 187, 193]
-        super(Evaluation, self).save(*args, **kwargs)
+    total_weighted_score = models.FloatField(editable=False, default=0.0)
+    supervisor_comments = models.TextField(blank=True)
+    date_evaluated = models.DateTimeField(auto_now_add=True)
     class Meta:
         # PREVENT DOUBLE SUBMISSION: 
         # Ensures one evaluation per student, per placement, per criteria.
@@ -211,8 +190,23 @@ class Evaluation(models.Model):
         self.full_clean() # Force validation on save
         super().save(*args, **kwargs)
 
+    def clean(self):
+        # Validation to ensure scores are within a 0-100 range 
+        for score in [self.attendance_punctuality, self.technical_competence, self.quality_of_work]:
+            if score < 0 or score > 100:
+                raise ValidationError("All scores must be between 0 and 100.")
+
+    def save(self, *args, **kwargs):
+        # Formula: (40% * Score1) + (30% * Score2) + (30% * Score3)
+        self.total_weighted_score = (
+            (self.attendance_punctuality * 0.4) + 
+            (self.technical_competence * 0.3) + 
+            (self.quality_of_work * 0.3)
+        )
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.placement.student.username} - Final Score: {self.total_score}"
+        return f"{self.placement.student.username} - Final Score: {self.total_weighted_score}"
 
 # The Issue Model
 class Issue(models.Model):

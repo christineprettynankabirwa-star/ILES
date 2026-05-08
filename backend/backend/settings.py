@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     #installed apps
     'rest_framework',
+    'rest_framework.authtoken',
     'core',
     'corsheaders',
 ]
@@ -82,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql', 
         'NAME':'iles_db',
         'USER': 'postgres',
-        'PASSWORD': '1234567890',
+        'PASSWORD': '@Baleer0isaacs0n',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -131,3 +132,16 @@ AUTH_USER_MODEL = 'core.CustomUser'
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE' : 10,
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
+
+CORS_ALLOW_ALL_ORIGINS = True 

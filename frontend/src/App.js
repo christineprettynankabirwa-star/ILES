@@ -1,24 +1,50 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import Login from './pages/Login';
+import InternshipList from "./pages/InternshipList";
+import IssueForm from './pages/IssueForm';
 import logo from './logo.svg';
 import './App.css';
 
 function App() {
+  const [token, setToken] = useState(localStorage.getItem('token'));
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem('token');
+    setToken(savedToken);
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="App" style={{ padding: "20px" }}>
+        {/* You can put your Header or Logo here if you want it on every page */}
+        <header>
+          <h1>ILES Internship System</h1>
+        </header>
+        
+        <Routes>
+          {/* Public Route */}
+          <Route path="/login" element={<Login setToken={setToken} />} />
+
+          {/* Protected Routes: Only accessible if token exists */}
+          <Route 
+            path="/" 
+            element={token ? (
+              <>
+                <InternshipList />
+                <hr />
+                <IssueForm />
+              </>
+            ) : (
+              <Navigate to="/login" />
+            )} 
+          />
+          
+          {/* Redirect any unknown paths to Home */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

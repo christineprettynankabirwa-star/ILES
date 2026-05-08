@@ -5,10 +5,17 @@ function InternshipList() {
     const [internships, setInternships] = useState([]);
 
     useEffect(()=> {
-        axios.get("http://127.0.0.1:8000/api/internshipplacements/")
+        const token = localStorage.getItem('token');
+
+        axios.get("http://127.0.0.1:8000/api/internshipplacements/", {
+            headers: {
+                Authorization: `Token ${token}` 
+            }
+        })
         .then(response => {
             console.log("API RESPONSE:", response.data);
-            setInternships(response.data.results);
+            const data = response.data.results || response.data;
+            setInternships(data);
         })
         .catch(error => {
             console.error("Error fetching internships:", error);
@@ -20,7 +27,7 @@ function InternshipList() {
             <h2>Internship Placements</h2>
 
             {internships.length === 0 ? (
-                <p>No internships found.</p>
+                <p>No internships found (Check if you are logged in!).</p>
             ) : (
                 internships.map(internship => (
                     <div
