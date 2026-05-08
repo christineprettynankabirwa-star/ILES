@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from .models import WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement, Issue
 
 class UserSerializer(serializers.ModelSerializer):
-    # Field to capture role from the React signup dropdown
+    # Field to capture role (student, supervisor, etc.) from React
     role = serializers.CharField(write_only=True, required=False)
 
     class Meta:
@@ -12,19 +12,18 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        # Prevent 'Signup failed' by extracting role before creating the User
+        # Remove role before creating the user to avoid 'unexpected keyword' errors
         role = validated_data.pop('role', 'student')
         user = User.objects.create_user(**validated_data)
         return user
 
 class IssueSerializer(serializers.ModelSerializer):
-    # Read-only student name for the UI
     student_name = serializers.CharField(source='student.username', read_only=True)
 
     class Meta:
         model = Issue
         fields = ['id', 'student', 'student_name', 'issue_description', 'status', 'created_at']
-        # Read-only prevents 'Failed to submit' if React doesn't send the ID
+        # Read-only prevents errors if the frontend doesn't send the user ID
         read_only_fields = ['student', 'status', 'created_at']
 
 class WeeklyLogSerializer(serializers.ModelSerializer):
@@ -37,8 +36,9 @@ class WeeklyLogSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         """
-        Passes the user context to the signal for LogStatusHistory tracking.
+        Passes the user context to the signal to fulfill the 'Audit trail' requirement.
         """
+        # Capture the logged-in user from the request context
         instance._changed_by = self.context['request'].user
         return super().update(instance, validated_data)
 
@@ -54,26 +54,27 @@ class InternshipPlacementSerializer(serializers.ModelSerializer):
         start = data.get('start_date')
         end = data.get('end_date')
 
-        # Logical check: Is the end date after the start date
+        # Logic: End date must be after start date
         if start and end and start >= end:
             raise serializers.ValidationError({
                 "end_date": "The internship cannot end before it starts."
             })
 
-        # Check for overlapping placements
-        overlapping_placements = InternshipPlacement.objects.filter(
+        # Logic: Check for overlapping placements for the same student
+        overlapping = InternshipPlacement.objects.filter(
             student=student,
             start_date__lt=end,
             end_date__gt=start
         )
 
         if self.instance:
-            overlapping_placements = overlapping_placements.exclude(pk=self.instance.pk)
+            overlapping = overlapping.exclude(pk=self.instance.pk)
 
-        if overlapping_placements.exists():
+        if overlapping.exists():
             raise serializers.ValidationError(
                 "This student already has an internship placement during these dates."
             )
+            
         return data
 
 class EvaluationCriteriaSerializer(serializers.ModelSerializer):
