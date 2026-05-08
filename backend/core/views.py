@@ -1,12 +1,14 @@
 from django.shortcuts import render
 from django.db.models import Count, Avg
 from rest_framework.views import APIView
+from rest_framework import viewsets, permissions
 from rest_framework.generics import ListCreateAPIView
 from .models import WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement, Issue
 from .serializers import WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerializer, InternshipPlacementSerializer, IssueSerializer
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsStudentUser
+
 
 class DashboardStatsView(APIView):
     """
@@ -65,8 +67,7 @@ class EvaluationViewSet(viewsets.ModelViewSet):
     queryset = Evaluation.objects.all()
     serializer_class = EvaluationSerializer
 
-# This was the missing piece causing your error!
 class IssueViewSet(viewsets.ModelViewSet):
     queryset = Issue.objects.all()
     serializer_class = IssueSerializer
-    permission_classes = [IsStudentUser]
+    permission_classes = [permissions.IsAuthenticated]
