@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import Login from './pages/Login';
 import InternshipList from "./pages/InternshipList";
 import IssueForm from './pages/IssueForm';
+import logo from './logo.svg';
+import './App.css';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -15,7 +17,10 @@ function App() {
   return (
     <Router>
       <div className="App" style={{ padding: "20px" }}>
-        <h1>ILES Internship System</h1>
+        {/* You can put your Header or Logo here if you want it on every page */}
+        <header>
+          <h1>ILES Internship System</h1>
+        </header>
         
         <Routes>
           {/* Public Route */}

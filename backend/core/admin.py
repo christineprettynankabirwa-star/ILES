@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import Issue, CustomUser, InternshipPlacement, WeeklyLog, EvaluationCriteria,Evaluation
+from .models import Issue, CustomUser, InternshipPlacement, WeeklyLog, EvaluationCriteria, Evaluation, LogStatusHistory
+
 
 admin.site.register(Issue)
+admin.site.register(LogStatusHistory)
 
 # --- Custom User Admin ---
 class CustomUserAdmin(UserAdmin):
