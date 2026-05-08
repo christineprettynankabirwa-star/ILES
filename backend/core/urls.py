@@ -4,7 +4,6 @@ from .views import IssueViewSet,WeeklyLogListCreateAPIView,EvaluationCriteriaLis
 
 router = DefaultRouter()
 router.register(r'issues', IssueViewSet)
- #router.register(r'internshipplacements', InternshipPlacementViewSet)
 
 urlpatterns = [
     path('api/weeklylogs/',WeeklyLogListCreateAPIView.as_view()),

@@ -5,6 +5,7 @@ class WeeklyLogSerializer(serializers.ModelSerializer):
         model = WeeklyLog
         fields = '__all__'
 class InternshipPlacementSerializer(serializers.ModelSerializer):
+    student_name = serializers.ReadOnlyField(source='student.username')
     class Meta:
         model = InternshipPlacement
         fields = '__all__'
@@ -41,7 +42,6 @@ class EvaluationCriteriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = EvaluationCriteria
         fields = '__all__'
-        
 class EvaluationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evaluation
