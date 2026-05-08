@@ -1,73 +1,34 @@
-from django.shortcuts import render
-from django.db.models import Count, Avg
-from rest_framework.views import APIView
-from rest_framework import viewsets, permissions
-from rest_framework.generics import ListCreateAPIView
-from .models import WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement, Issue
-from .serializers import WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerializer, InternshipPlacementSerializer, IssueSerializer
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from .permissions import IsStudentUser
+from django.contrib.auth.models import User, Group
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def signup_view(request):
+    data = request.data
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    role = data.get('role')  # student, academic_supervisor, or workplace_supervisor
 
-class DashboardStatsView(APIView):
-    """
-    Provides aggregated data for the Week 10 dashboard requirements.
-    """
-    permission_classes = [IsAuthenticated]
+    if not username or not password:
+        return Response({"error": "Username and password required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request):
-        # 1. Student Progress Dashboard that Counts how many weekly logs each student has submitted
-        student_progress = InternshipPlacement.objects.annotate(
-            logs_count=Count('weeklylog')
-        ).values('student__username', 'logs_count')
+    try:
+        if User.objects.filter(username=username).exists():
+            return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 2. Supervisor Pending Reviews and Filters evaluations that have not been completed yet
-        pending_reviews = Evaluation.objects.filter(status='Pending').count()
+        # Create User
+        user = User.objects.create_user(username=username, email=email, password=password)
 
-        # 3. Admin Statistics Dashboard which Calculates system-wide averages for performance metrics
-        admin_stats = Evaluation.objects.aggregate(
-            avg_score=Avg('total_weighted_score'),
-            total_evals=Count('id')
-        )
+        # Assign Role via Groups
+        if role:
+            group, created = Group.objects.get_or_create(name=role)
+            user.groups.add(group)
 
-        return Response({
-            "student_progress": list(student_progress),
-            "pending_reviews_count": pending_reviews,
-            "admin_performance": admin_stats
-        })
-
-class WeeklyLogViewSet(viewsets.ModelViewSet):
-    queryset = WeeklyLog.objects.all()
-    serializer_class = WeeklyLogSerializer
-
-    def perform_create(self, serializer):
-        # Attach the logged-in user as the person creating/starting the log
-        serializer.instance._changed_by = self.request.user
-        serializer.save(student=self.request.user)
-
-    def perform_update(self, serializer):
-        """
-        When a supervisor reviews or approves a log, this method 
-        passes the supervisor's identity to the signal.
-        """
-        # bridge that allows the signal to know who made the change
-        serializer.instance._changed_by = self.request.user
-        serializer.save()
-
-class InternshipPlacementViewSet(viewsets.ModelViewSet):
-    queryset = InternshipPlacement.objects.all()
-    serializer_class = InternshipPlacementSerializer
-
-class EvaluationCriteriaViewSet(viewsets.ModelViewSet):
-    queryset = EvaluationCriteria.objects.all()
-    serializer_class = EvaluationCriteriaSerializer
-
-class EvaluationViewSet(viewsets.ModelViewSet):
-    queryset = Evaluation.objects.all()
-    serializer_class = EvaluationSerializer
-
-class IssueViewSet(viewsets.ModelViewSet):
-    queryset = Issue.objects.all()
-    serializer_class = IssueSerializer
-    permission_classes = [permissions.IsAuthenticated]
+        return Response({"message": "Registration successful"}, status=status.HTTP_201_CREATED)
+    
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
