@@ -98,4 +98,34 @@ function StudentDashbord() {
             setSubmitting(false);
         }
     };
+
+    if (loading) return <div style={{padding: '20px'}}>Loading...</div>;
+
+    if (!user) {
+        return (
+        <div style={{padding: '20px'}}>
+            <h1>ILES INTERNSHIP SYSTEM</h1>
+            <p>❌ Not logged in</p>
+            <p>Please <a href="/login">login here</a></p>
+        </div>
+    );
 }
+
+    return (
+        <div style={{padding: '20px'}}>
+            <h1>🎓 ILES INTERNSHIP SYSTEM</h1>
+            <p>Welcome, <strong>{user.username}</strong> (Role: {user.role})</p>
+
+            {/* Placement Info */}
+            <section style={{border: '1px solid #ccc', padding: '15px', borderRadius: '8px', marginBottom: '20px'}}>
+                <h2>📋 My  Internship Placement </h2>
+                {placement ? (
+                    <div>
+                        <p><strong>Company:</strong> {placement.company_name}</p>
+                        <p><strong>Period:</strong> {placement.start_date} to {placement.end_date}</p>
+                        <p><strong>Supervisor:</strong> {placement.supervisor_name || 'Assigned'} ({placement.supervisor_email})</p>
+                    </div>
+                ) : (
+                    <p>⚠️ No placement assigned yet. Contact your administrator.</p>
+                )}
+            </section>
