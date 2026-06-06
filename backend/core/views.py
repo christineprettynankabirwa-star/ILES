@@ -38,7 +38,7 @@ def user_profile(request):
         'id': user.id,
         'username': user.username,
         'email': user.email,
-        'role': user.role
+        'role': user.role,
         'first_name': user.first_name,
         'last_name': user.last_name,
     })
