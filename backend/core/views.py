@@ -36,4 +36,5 @@ def user_profile(request):
         'role': user.role,
         'first_name': user.first_name,
         'last_name': user.last_name,
+        'department': user.department.name if hasattr(user, 'department') and user.department else None,
     })
