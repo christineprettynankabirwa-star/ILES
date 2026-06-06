@@ -85,5 +85,17 @@ function StudentDashbord() {
             });
 
             if (res.ok) {
-                setMessage('🎓 Log submitted successfully!');
+                setMessage('✅ Log submitted successfully!');
+                setFormData({ week_number: '', description: '', hours_worked: '' });
+                fetchLogs(token); // Refresh list of logs
+            } else {
+                const errorData = await res.json();
+                setMessage(`❌ Error: ${errorData.detail || 'Failed to submit log.'}`);
+            }
+        } catch (err) {
+            setMessage(`❌ Network error: ${err.message}`);
+        } finally {
+            setSubmitting(false);
+        }
+    };
 }
