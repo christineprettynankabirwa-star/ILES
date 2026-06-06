@@ -1,12 +1,15 @@
 from django.shortcuts import render
 from rest_framework.generics import ListCreateAPIView
 from .models import WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement
-from .serializers import WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerializer, InternshipPlacementSerializer
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
+from .serializers import WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerializer, InternshipPlacementSerializer, UserSerializer
+from rest_framework import viewsets,generics,status
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .permissions import IsStudentUser
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from django.contrib.auth import get_user_model
+
+
 
 class WeeklyLogListCreateAPIView(ListCreateAPIView):
     queryset = WeeklyLog.objects.all()
@@ -24,11 +27,13 @@ class EvaluationListCreateAPIView(ListCreateAPIView):
     queryset = Evaluation.objects.all()
     serializer_class = EvaluationSerializer
 
+User = get_user_model()
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_profile(request):
     user = request.user
+    serializer = UserSerializer(user)
     return Response({
         'id': user.id,
         'username': user.username,
