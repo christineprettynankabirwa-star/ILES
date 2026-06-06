@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include 
 from rest_framework.authtoken.views import obtain_auth_token
-
-from backend.core.views import user_profile
+from core.views import user_profile
 
 urlpatterns = [
     path('admin/', admin.site.urls),
