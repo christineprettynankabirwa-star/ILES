@@ -18,6 +18,19 @@ function StudentDashbord() {
 
         if (!token) {
             console.log("No token found");
+            setLoading(false);
+            return;
+        }
+
+        try {
+            // Decode token to get user info 
+            const payload = token.split('.')[1];
+            const decoded = JSON.parse(atob(payload));
+            console.log("User:", decoded);
+            setUser(decoded);
+
             
+        } catch (error) {
+            console.error("Error decoding token:", error);
         }
 }
