@@ -5,6 +5,8 @@ from .serializers import WeeklyLogSerializer, EvaluationCriteriaSerializer, Eval
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsStudentUser
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
 
 class WeeklyLogListCreateAPIView(ListCreateAPIView):
     queryset = WeeklyLog.objects.all()
@@ -27,3 +29,16 @@ class IssueViewSet(viewsets.ModelViewSet):
     queryset = Issue.objects.all()
     serializer_class = IssueSerializer
     permission_classes = [IsStudentUser]
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    user = request.user
+    return Response({
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'role': user.role
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+    })
