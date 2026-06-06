@@ -29,8 +29,61 @@ function StudentDashbord() {
             console.log("User:", decoded);
             setUser(decoded);
 
-            
-        } catch (error) {
-            console.error("Error decoding token:", error);
+            // Fetch student data
+            fetchPlacement(token);
+            fetchLogs(token);
+        } catch (err) {
+            console.error("Error:", err);
+        } finally {
+            setLoading(false);
         }
+    }, []);
+
+    const fetchPlacement = async (token) => {
+        try {
+            const res = await fetch('http://localhost:8000/api/student/placement/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setPlacement(data);
+            } 
+        } catch (err) {
+            console.error("Placement error:", err);
+        }
+    };
+
+    const fetchLogs = async (token) => {
+        try {
+            const res = await fetch('http://localhost:8000/api/student/logs/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setLogs(data);
+            }
+        } catch (err) {
+            console.error("Logs error:", err);
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setSubmitting(true);
+        setMessage('');
+
+        const token = localStorage.getItem('access_token');
+
+        try {
+            const res = await fetch('http://localhost:8000/api/student/logs/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (res.ok) {
+                setMessage('🎓 Log submitted successfully!');
 }
