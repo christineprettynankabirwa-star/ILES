@@ -174,6 +174,43 @@ function StudentDashbord() {
                 </form>
             </section>
 
-            
+           {/* My Logs List - Track progress */}
+            <section style={{border: '1px solid #ccc', padding: '15px', borderRadius: '8px'}}> 
+                <h2>📊 My Submitted Weekly Logs</h2>
+                {logs.length === 0 ? (
+                    <p>⚠️ No logs submitted yet.</p>
+                ) : (
+                    <table border="1" style={{borderCollapse: 'collapse', width: '100%'}}>
+                        <thead>
+                            <tr style={{backgroundColor: '#f0f0f0'}}>
+                                <th style={{padding: '8px'}}>Week</th>
+                                <th style={{padding: '8px'}}>Description</th>
+                                <th style={{padding: '8px'}}>Hours</th>
+                                <th style={{padding: '8px'}}>Status</th>
+                                <th style={{padding: '8px'}}>Feedback</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {logs.map(log => (
+                                <tr key={log.id}>
+                                    <td style={{padding: '8px', textAlign: 'center'}}>{log.week_number}</td>
+                                    <td style={{padding: '8px'}}>{log.description}</td>
+                                    <td style={{padding: '8px', textAlign: 'center'}}>{log.hours_worked}</td>
+                                    <td style={{padding: '8px', textAlign: 'center'}}>
+                                        <span style={{
+                                            color: log.status === 'approved' ? 'green' : log.status === 'rejected' ? 'red' : 'orange'}}> {log.status}
+                                        </span>
+                                    </td>
+                                    <td style={{padding: '8px'}}>{log.feedback || 'N/A'}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </section>
         </div>
     );
+}
+
+export default StudentDashbord;
