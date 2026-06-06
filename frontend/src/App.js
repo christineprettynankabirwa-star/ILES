@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import React, { useState, useEffect } from "react";
 import Login from './pages/Login';
-import InternshipList from "./pages/InternshipList";
-import IssueForm from './pages/IssueForm';
+import StudentDashboard from './pages/StudentDashboard';
+
+
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -26,9 +27,7 @@ function App() {
             path="/" 
             element={token ? (
               <>
-                <InternshipList />
-                <hr />
-                <IssueForm />
+                <StudentDashboard  />
               </>
             ) : (
               <Navigate to="/login" />
