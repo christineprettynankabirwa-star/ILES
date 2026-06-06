@@ -129,3 +129,51 @@ function StudentDashbord() {
                     <p>⚠️ No placement assigned yet. Contact your administrator.</p>
                 )}
             </section>
+
+            {/* Log Submission Form */}
+            <section style={{border: '1px solid #ccc', padding: '15px', borderRadius: '8px', marginBottom: '20px'}}>
+                <h2>📝 Submit Weekly Log</h2>
+                <form onSubmit={handleSubmit}>
+                    <div style={{marginBottom: '10px'}}>
+                        <label>Week Number: </label>
+                        <input
+                            type="number"
+                            name="week_number"
+                            value={formData.week_number}
+                            onChange={(e) => setFormData({...formData, week_number: e.target.value})}
+                            required
+                            style={{marginLeft: '10px', padding: '5px'}}
+                        />
+                    </div>
+                    <div style={{marginBottom: '10px'}}>
+                        <label>Description: </label>
+                        <textarea
+                            name="description"
+                            value={formData.description}
+                            onChange={(e) => setFormData({...formData, description: e.target.value})}
+                            required
+                            rows="3"
+                            style={{marginLeft: '10px', width: '300px'}}
+                        />
+                    </div>
+                    <div style={{marginBottom: '10px'}}>
+                        <label>Hours Worked: </label>
+                        <input
+                            type="number"
+                            name="hours_worked"
+                            value={formData.hours_worked}
+                            onChange={(e) => setFormData({...formData, hours_worked: e.target.value})}
+                            required
+                            style={{marginLeft: '10px', padding: '5px'}}
+                        />
+                    </div>
+                    <button type="submit" disabled={submitting}>
+                        {submitting ? 'Submitting...' : 'Submit Log'}
+                    </button>
+                    {message && (<p style={{color: message.includes('✅') ? 'green' : 'red', marginTop: '10px'}}> {message} </p> )}
+                </form>
+            </section>
+
+            
+        </div>
+    );
