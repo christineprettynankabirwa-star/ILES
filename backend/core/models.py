@@ -37,12 +37,22 @@ class CustomUser(AbstractUser):
 
     @property
     def is_admin_user(self):
-        return self.role == 'admin' or self.is_superuser
+        return self.role == 'admin' or self.is_superuser 
 
     class Meta:
         '''Meta definition for CustomUser model'''
         verbose_name = "Custom User"
         verbose_name_plural = "Custom Users"
+
+class Department(models.Model):
+    '''Model representing a department in the university'''
+    name = models.CharField(max_length=100, unique=True)
+    code = models.CharField(max_length=10, unique=True)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+    
 class InternshipPlacement(models.Model):
     '''Model representing an internship placement'''
     student = models.ForeignKey('CustomUser', related_name='placements', 
