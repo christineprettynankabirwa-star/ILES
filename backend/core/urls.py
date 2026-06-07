@@ -5,19 +5,16 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 router = DefaultRouter() 
 router.register('users', CustomUserViewSet, basename='user')    
-router.register('logs', WeeklyLogListCreateAPIView, basename='log')
-router.register('placements', InternshipPlacementListCreateAPIView, basename='placement')
-router.register('evaluation-criteria', EvaluationCriteriaListCreateAPIView, basename='evaluation-criteria')
-router.register('evaluations', EvaluationListCreateAPIView, basename='evaluation')
+
 
 urlpatterns = [
-    path('api/departments/', DepartmentListCreateAPIView.as_view()),
+    path('api/departments/', DepartmentListCreateAPIView.as_view(), name='department-list-create'),
     path("api/token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path('api/weeklylogs/',WeeklyLogListCreateAPIView.as_view()),
-    path('api/internshipplacements/',InternshipPlacementListCreateAPIView.as_view()),
-    path('api/evaluationcriteria/',EvaluationCriteriaListCreateAPIView.as_view()),
-    path('api/evaluations/',EvaluationListCreateAPIView.as_view()),
+    path('api/weeklylogs/',WeeklyLogListCreateAPIView.as_view(), name='weeklylog-list-create'),
+    path('api/internshipplacements/',InternshipPlacementListCreateAPIView.as_view(), name='internshipplacement-list-create'),
+    path('api/evaluationcriteria/',EvaluationCriteriaListCreateAPIView.as_view(), name='evaluationcriteria-list-create'),
+    path('api/evaluations/',EvaluationListCreateAPIView.as_view(), name='evaluation-list-create'),
     path('api/user/profile/', user_profile, name='user-profile'),
     path('api/', include(router.urls)),
 ]
