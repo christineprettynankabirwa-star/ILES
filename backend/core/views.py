@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.generics import ListCreateAPIView
 from .models import CustomUser, Department, WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement
-from .serializers import  CustomTokenObtainPairSerializer, CustomUserSerializer, DepartmentSerializer, WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerializer, InternshipPlacementSerializer, UserSerializer
+from .serializers import  CustomTokenObtainPairSerializer, CustomUserSerializer, DepartmentSerializer, WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerializer, InternshipPlacementSerializer
 from rest_framework import viewsets,generics,status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .permissions import IsStudentUser
@@ -42,7 +42,7 @@ User = get_user_model()
 @permission_classes([IsAuthenticated])
 def user_profile(request):
     user = request.user
-    serializer = UserSerializer(user)
+    serializer = CustomUserSerializer(user)
     return Response({
         'id': user.id,
         'username': user.username,
