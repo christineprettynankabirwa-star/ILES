@@ -3,8 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import CustomTokenObtainPairView, CustomUserViewSet, DepartmentListCreateAPIView, WeeklyLogListCreateAPIView,EvaluationCriteriaListCreateAPIView,EvaluationListCreateAPIView,InternshipPlacementListCreateAPIView, user_profile
 from rest_framework_simplejwt.views import TokenRefreshView
 
-router = DefaultRouter()
-router.register('departments', DepartmentListCreateAPIView, basename='department')  
+router = DefaultRouter() 
 router.register('users', CustomUserViewSet, basename='user')    
 router.register('logs', WeeklyLogListCreateAPIView, basename='log')
 router.register('placements', InternshipPlacementListCreateAPIView, basename='placement')
@@ -12,6 +11,7 @@ router.register('evaluation-criteria', EvaluationCriteriaListCreateAPIView, base
 router.register('evaluations', EvaluationListCreateAPIView, basename='evaluation')
 
 urlpatterns = [
+    path('api/departments/', DepartmentListCreateAPIView.as_view()),
     path("api/token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path('api/weeklylogs/',WeeklyLogListCreateAPIView.as_view()),
