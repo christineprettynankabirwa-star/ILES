@@ -1,16 +1,25 @@
 from django.shortcuts import render
 from rest_framework.generics import ListCreateAPIView
-from .models import WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement
-from .serializers import WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerializer, InternshipPlacementSerializer, UserSerializer
+from .models import CustomUser, Department, WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement
+from .serializers import  CustomTokenObtainPairSerializer, CustomUserSerializer, DepartmentSerializer, WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerializer, InternshipPlacementSerializer, UserSerializer
 from rest_framework import viewsets,generics,status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .permissions import IsStudentUser
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.views import TokenObtainPairView
 
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 
-
+class CustomUserViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = [AllowAny]
+class DepartmentListCreateAPIView(ListCreateAPIView):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
 class WeeklyLogListCreateAPIView(ListCreateAPIView):
     queryset = WeeklyLog.objects.all()
     serializer_class = WeeklyLogSerializer
