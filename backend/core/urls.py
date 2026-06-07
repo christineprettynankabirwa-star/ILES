@@ -1,6 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter 
 from .views import WeeklyLogListCreateAPIView,EvaluationCriteriaListCreateAPIView,EvaluationListCreateAPIView,InternshipPlacementListCreateAPIView, user_profile
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 router = DefaultRouter()
 router.register('logs', WeeklyLogListCreateAPIView, basename='log')
@@ -14,5 +18,7 @@ urlpatterns = [
     path('api/evaluationcriteria/',EvaluationCriteriaListCreateAPIView.as_view()),
     path('api/evaluations/',EvaluationListCreateAPIView.as_view()),
     path('api/user/profile/', user_profile, name='user-profile'),
+    path('api/token/', TokenObtainPairView.as_view()),
+    path('api/token/refresh/', TokenRefreshView.as_view()),
     path('api/', include(router.urls)),
 ]
