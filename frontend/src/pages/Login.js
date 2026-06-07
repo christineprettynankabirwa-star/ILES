@@ -34,9 +34,11 @@ function Login({ setToken }) {
     const pageStyle = {
         height: '80vh',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#f0f2f5'
+        backgroundColor: '#f0f2f5',
+        gap: '15px'
     };
 
     const cardStyle = {
@@ -45,7 +47,7 @@ function Login({ setToken }) {
         padding: '40px',
         backgroundColor: '#ffffff',
         borderRadius: '15px',
-        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+        boxShadow: '0 10px 25 rgba(0,0,0,0.1)',
         textAlign: 'center'
     };
 
@@ -73,6 +75,23 @@ function Login({ setToken }) {
 
     return (
         <div style={pageStyle}>
+            {/* Link pointing to the root route landing site */}
+            <Link 
+                to="/" 
+                style={{ 
+                    width: '100%', 
+                    maxWidth: '400px', 
+                    textAlign: 'left', 
+                    color: '#7f8c8d', 
+                    textDecoration: 'none', 
+                    fontSize: '14px', 
+                    fontWeight: '500',
+                    paddingLeft: '5px'
+                }}
+            >
+                &larr; Back to Home
+            </Link>
+
             <div style={cardStyle}>
                 <h2 style={{ color: '#2c3e50', marginBottom: '10px', fontWeight: '700' }}>Welcome Back</h2>
                 <p style={{ color: '#7f8c8d', marginBottom: '30px' }}>Log in to the ILES Portal</p>

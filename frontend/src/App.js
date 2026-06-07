@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import React, { useState, useEffect } from "react";
+import LandingSite from './pages/LandingSite';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AboutUs from './pages/AboutUs';
@@ -21,47 +22,46 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setToken(null);
-    window.location.href = "/login";
+    window.location.href = "/";
   };
 
   return (
     <Router>
       <div className="App">
-        {/* Modern Navigation Bar */}
-        <nav style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          padding: '15px 30px', 
-          background: '#2c3e50', 
-          color: 'white',
-          alignItems: 'center' 
-        }}>
-          <h2 style={{ margin: 0, fontSize: '1.2rem' }}>ILES Portal</h2>
-          <div style={{ display: 'flex', gap: '20px' }}>
-            <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>Home</Link>
-            <Link to="/about" style={{ color: 'white', textDecoration: 'none' }}>About Us</Link>
-            {!token ? (
-              <>
-                <Link to="/login" style={{ color: 'white', textDecoration: 'none' }}>Login</Link>
-                <Link to="/signup" style={{ color: 'white', textDecoration: 'none' }}>Signup</Link>
-              </>
-            ) : (
-              <button onClick={handleLogout} style={{ background: '#e74c3c', border: 'none', color: 'white', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>
+        {/* Render global app header navbar ONLY if user is authenticated */}
+        {token && (
+          <nav style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            padding: '15px 30px', 
+            background: '#2c3e50', 
+            color: 'white',
+            alignItems: 'center' 
+          }}>
+            <h2 style={{ margin: 0, fontSize: '1.2rem' }}>ILES Portal</h2>
+            <div style={{ display: 'flex', gap: '20px' }}>
+              <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>Dashboard</Link>
+              <Link to="/about" style={{ color: 'white', textDecoration: 'none' }}>About Us</Link>
+              <button 
+                onClick={handleLogout} 
+                style={{ 
+                  background: '#e74c3c', 
+                  border: 'none', 
+                  color: 'white', 
+                  padding: '5px 10px', 
+                  borderRadius: '4px', 
+                  cursor: 'pointer' 
+                }}
+              >
                 Logout
               </button>
-            )}
-          </div>
-        </nav>
+            </div>
+          </nav>
+        )}
 
-        <div style={{ padding: "20px" }}>
+        <div style={{ padding: token ? "20px" : "0px" }}>
           <Routes>
-            {/* Public Routes */}
-            <Route path="/about" element={<AboutUs />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/login" element={<Login setToken={setToken} />} />
-
-            {/* Protected Route (Dashboard / Home) */}
+            {/* Dynamic Root Route */}
             <Route 
               path="/" 
               element={token ? (
@@ -73,11 +73,17 @@ function App() {
                   <IssueForm />
                 </>
               ) : (
-                <Navigate to="/login" />
+                <LandingSite />
               )} 
             />
+
+            {/* Public Auth & Marketing Routes */}
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/signup" element={!token ? <Signup /> : <Navigate to="/" />} />
+            <Route path="/login" element={!token ? <Login setToken={setToken} /> : <Navigate to="/" />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             
-            {/* Redirect any unknown paths to Home */}
+            {/* Catch-all Wildcard Redirect */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
