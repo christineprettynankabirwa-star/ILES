@@ -26,6 +26,18 @@ class CustomUser(AbstractUser):
     @property
     def is_student(self):
         return self.role == 'student'
+    
+    @property
+    def is_workplace_supervisor(self):
+        return self.role == 'work_supervisor'
+
+    @property
+    def is_academic_supervisor(self):
+        return self.role == 'acad_supervisor'
+
+    @property
+    def is_admin_user(self):
+        return self.role == 'admin' or self.is_superuser
 
     class Meta:
         '''Meta definition for CustomUser model'''
