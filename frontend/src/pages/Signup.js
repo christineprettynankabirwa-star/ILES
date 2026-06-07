@@ -8,7 +8,7 @@ function Signup() {
         email: '',
         password: '',
         confirmPassword: '',
-        role: 'Student' // Matches the display roles
+        role: 'student' // Default matches Django model default
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(''); 
@@ -30,12 +30,12 @@ function Signup() {
 
         setLoading(true);
         try {
-            // Note: Changed endpoint path to match your root prefix ('') configuration 
-            await axios.post('http://127.0.0.1:8000/signup/', {
+            await axios.post('http://127.0.0.1:8000/api/signup/', {
                 username: formData.username,
                 email: formData.email,
                 password: formData.password,
-                role: formData.role  
+                confirmPassword: formData.confirmPassword,
+                role: formData.role  // ✅ Now sends exactly what Django models expect
             });
 
             alert(`Account created! Please log in.`);
@@ -78,7 +78,7 @@ function Signup() {
     const errorStyle = {
         backgroundColor: '#fdecea', color: '#c0392b', padding: '10px 14px',
         borderRadius: '8px', fontSize: '14px', textAlign: 'center',
-        border: '1px solid #f5c6cb', marginBottom: '10px'
+        border: '1px solid #f5c6cb'
     };
 
     return (
@@ -93,68 +93,44 @@ function Signup() {
 
                 {error && <div style={errorStyle}>{error}</div>}
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    
-                    <input 
-                        name="username" 
-                        type="text" 
-                        placeholder="Username"
-                        style={inputStyle} 
-                        onChange={handleChange} 
-                        required 
-                    />
-                    
-                    <input 
-                        name="email" 
-                        type="email" 
-                        placeholder="Email Address"
-                        style={inputStyle} 
-                        onChange={handleChange} 
-                        required 
-                    />
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
+                    <input name="username" type="text" placeholder="Username"
+                        style={inputStyle} onChange={handleChange} required />
+                    <input name="email" type="email" placeholder="Email Address"
+                        style={inputStyle} onChange={handleChange} required />
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                        <label style={{ fontSize: '12px', color: '#7f8c8d', fontWeight: '600', textTransform: 'uppercase' }}>
-                            Register As:
+                        <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#34495e', marginLeft: '2px' }}>
+                            REGISTER AS:
                         </label>
-                        <select 
-                            name="role" 
-                            style={selectStyle} 
-                            value={formData.role} 
-                            onChange={handleChange}
-                        >
-                            <option value="Student">Student</option>
-                            <option value="Academic Supervisor">Academic Supervisor</option>
-                            <option value="Workplace Supervisor">Workplace Supervisor</option>
+                        <select name="role" value={formData.role} style={selectStyle} onChange={handleChange}>
+                            <option value="student">Student</option>
+                            
+                            {/* ✅ Matches ('acad_supervisor', 'Academic Supervisor') */}
+                            <option value="acad_supervisor">Academic Supervisor</option>
+                            
+                            {/* ✅ Matches ('work_supervisor', 'Workplace Supervisor') */}
+                            <option value="work_supervisor">Workplace Supervisor</option>
                         </select>
                     </div>
 
-                    <input 
-                        name="password" 
-                        type="password" 
-                        placeholder="Password"
-                        style={inputStyle} 
-                        onChange={handleChange} 
-                        required 
-                    />
-                    
-                    <input 
-                        name="confirmPassword" 
-                        type="password" 
-                        placeholder="Confirm Password"
-                        style={inputStyle} 
-                        onChange={handleChange} 
-                        required 
-                    />
+                    <input name="password" type="password" placeholder="Password"
+                        style={inputStyle} onChange={handleChange} required />
+                    <input name="confirmPassword" type="password" placeholder="Confirm Password"
+                        style={inputStyle} onChange={handleChange} required />
 
-                    <button type="submit" style={buttonStyle} disabled={loading}>
-                        {loading ? 'Creating Account...' : 'Sign Up'}
+                    <button type="submit" disabled={loading} style={buttonStyle}>
+                        {loading ? 'Creating Account...' : 'Register Account'}
                     </button>
-
-                    <p style={{ textAlign: 'center', fontSize: '14px', color: '#7f8c8d', marginTop: '15px' }}>
-                        Already have an account? <Link to="/login" style={{ color: '#3498db', textDecoration: 'none', fontWeight: '600' }}>Log In</Link>
-                    </p>
                 </form>
+
+                <div style={{ marginTop: '25px', textAlign: 'center', fontSize: '14px', color: '#7f8c8d' }}>
+                    <p>Already have an account?{' '}
+                        <Link to="/login" style={{ color: '#3498db', textDecoration: 'none', fontWeight: '600' }}>
+                            Log In
+                        </Link>
+                    </p>
+                </div>
             </div>
         </div>
     );
