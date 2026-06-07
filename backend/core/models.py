@@ -23,6 +23,10 @@ class CustomUser(AbstractUser):
     def  __str__(self):
         return  f"{self.username} ({self.get_role_display()})"
 
+    @property
+    def is_student(self):
+        return self.role == 'student'
+
     class Meta:
         '''Meta definition for CustomUser model'''
         verbose_name = "Custom User"
