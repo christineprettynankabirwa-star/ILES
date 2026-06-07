@@ -17,10 +17,11 @@ class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
     student_number = models.CharField(max_length=50, unique=True, blank=True, null=True)
     department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True, blank=True)
-
+    staff_number = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
 
     def  __str__(self):
-        return  str(self.username)
+        return  f"{self.username} ({self.get_role_display()})"
 
     class Meta:
         '''Meta definition for CustomUser model'''
