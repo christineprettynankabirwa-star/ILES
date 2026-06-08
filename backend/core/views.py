@@ -74,4 +74,8 @@ class RegisterView(generics.CreateAPiView):
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """ Custom login endpoint with role information """
+    serializer_class = CustomTokenObtainPairSerializer 
     
+      
