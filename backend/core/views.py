@@ -77,5 +77,19 @@ class RegisterView(generics.CreateAPiView):
 class CustomTokenObtainPairView(TokenObtainPairView):
     """ Custom login endpoint with role information """
     serializer_class = CustomTokenObtainPairSerializer 
-    
-      
+
+class LogoutView(generics.GenericAPIView):
+    """ Logout endpoint to blacklist refresh tokens """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("refresh")
+            if refresh_token:
+                from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
+                from rest_framework_simplejwt.tokens import RefreshToken
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            return Response({"message": "Logged out successfully."}, status=200)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)     
