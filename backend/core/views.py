@@ -54,7 +54,7 @@ def user_profile(request):
     })
 
 
-class RegisterView(generics.CreateAPiView):
+class RegisterView(generics.CreateAPIView):
     """User registration endpoint"""
     serializer_class = UserRegistrationSerializer
     permission_classes = [AllowAny]
