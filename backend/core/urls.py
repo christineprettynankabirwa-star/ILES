@@ -15,23 +15,23 @@ from rest_framework_simplejwt.views import TokenRefreshView
 router = DefaultRouter() 
 router.register(r'users', CustomUserViewSet, basename='user') 
 router.register(r'weekly-logs', WeeklyLogViewSet)
-router.register(r'placements', InternshipPlacementViewSet)
+router.register(r'internshipplacements', InternshipPlacementViewSet)
 router.register(r'criteria', EvaluationCriteriaViewSet)
 router.register(r'evaluations', EvaluationViewSet)
   
 
 
 urlpatterns = [
-    path('api/', include(router.urls)),
+    path('', include(router.urls)),
     path('dashboard-stats/', DashboardStatsView.as_view(), name='dashboard-stats'),
     path('signup/', signup_view, name='signup'),
-    path('api/logout/', LogoutView.as_view(), name='logout'),
-    path('api/register/', RegisterView.as_view(), name='register'),
-    path('api/departments/', DepartmentListCreateAPIView.as_view(), name='department-list-create'),
-    path("api/login/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
-    path('api/weeklylogs/',WeeklyLogListCreateAPIView.as_view(), name='weeklylog-list-create'),
-    path('api/user/profile/', user_profile, name='user-profile'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    path('register/', RegisterView.as_view(), name='register'),
+    path('departments/', DepartmentListCreateAPIView.as_view(), name='department-list-create'),
+    path("login/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path('weeklylogs/',WeeklyLogListCreateAPIView.as_view(), name='weeklylog-list-create'),
+    path('user/profile/', user_profile, name='user-profile'),
 ]
 
 

@@ -12,8 +12,7 @@ import './App.css';
 
 function App() {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
-  
-  
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = "/login";
