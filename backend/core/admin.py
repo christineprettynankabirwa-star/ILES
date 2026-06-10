@@ -14,10 +14,10 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ("role", "is_staff", "is_superuser")
     
     fieldsets = UserAdmin.fieldsets + (
-        ("Role Information and Permissions", {"fields": ("role", "university_id")}),
+        ("Role Information and Permissions", {"fields": ("role",)}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ("Role Information", {"fields": ("role", "university_id")}),
+        ("Role Information", {"fields": ("role",)}),
     )
 
 admin.site.register(CustomUser, CustomUserAdmin)
@@ -74,5 +74,4 @@ class EvaluationAdmin(admin.ModelAdmin):
     @admin.display(description='Student')
     def get_student(self, obj):
         return obj.placement.student.username
-
 admin.site.register(Evaluation, EvaluationAdmin)
