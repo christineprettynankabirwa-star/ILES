@@ -6,13 +6,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 
-print("\n" + "="*40)
-print(" DEBUGGING YOUR .ENV FILE")
-print("="*40)
-print(f"Looking for .env at: {os.path.join(BASE_DIR, '.env')}")
-print(f"Does the file actually exist there?: {os.path.exists(os.path.join(BASE_DIR, '.env'))}")
-print(f"What password did it read?: {os.getenv('postgrest')}")
-print("="*40 + "\n")
+   # print("\n" + "="*40)
+    #print("     UPGRADED .ENV DEBUGGER")
+    #print("="*40)
+    #env_path = os.path.join(BASE_DIR, '.env')
+    #print(f"Looking for .env at: {env_path}")
+    #print(f"Does the file actually exist there?: {os.path.exists(env_path)}")
+
+    #if os.path.exists(env_path):
+    #    print("\n--- RAW CONTENTS OF YOUR .ENV FILE ---")
+     #   with open(env_path, 'r') as f:
+      # print("------------------------------") 
+
+
+    #print(f"What password did it read?: {os.getenv('DB_PASSWORD')}")
+    #print("="*40 + "\n")
 
 """
 Django settings for backend project.
@@ -98,11 +106,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql', 
-        'NAME': os.getenv('iles_db'),
-        'USER': os.getenv('iles_db_host_user') or os.getenv('iles_db_user'),
-        'PASSWORD': os.getenv('postgrest'),
-        'HOST': os.getenv('iles_db_host'),
-        'PORT': os.getenv('iles_db_port'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
     }
 }
 
