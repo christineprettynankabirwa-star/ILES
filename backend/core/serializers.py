@@ -2,27 +2,64 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from .models import CustomUser, Department, WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class WeeklyLogSerializer(serializers.ModelSerializer):
+    student_name = serializers.CharField(source='student.username', read_only=True)
+    
     class Meta:
         model = WeeklyLog
         fields = '__all__'
+        read_only_fields = ['student', 'created_at', 'updated_at']
+
+    def update(self, instance, validated_data):
+        instance._changed_by = self.context['request'].user
+        return super().update(instance, validated_data)
+
 class InternshipPlacementSerializer(serializers.ModelSerializer):
     student_name = serializers.ReadOnlyField(source='student.username')
+
     class Meta:
         model = InternshipPlacement
         fields = '__all__'
+
+    def validate(self, data):
+        student = data.get('student')
+        start = data.get('start_date')
+        end = data.get('end_date')
+
+        if start and end and start >= end:
+            raise serializers.ValidationError({
+                "end_date": "The internship cannot end before it starts."
+            })
+
+        overlapping = InternshipPlacement.objects.filter(
+            student=student,
+            start_date__lt=end,
+            end_date__gt=start
+        )
+
+        if self.instance:
+            overlapping = overlapping.exclude(pk=self.instance.pk)
+
+        if overlapping.exists():
+            raise serializers.ValidationError(
+                "This student already has an internship placement during these dates."
+            )
+            
+        return data
 
 class EvaluationCriteriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = EvaluationCriteria
         fields = '__all__'
+
 class EvaluationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evaluation
         fields = '__all__'
-
-
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
