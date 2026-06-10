@@ -8,17 +8,15 @@ import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './components/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
-import { useNavigate } from 'react-router-dom';
 
 
 function App() {
   const [token, setToken] = useState(() => localStorage.getItem('token'));
-  const navigate = useNavigate();
+  
   
   const handleLogout = () => {
     localStorage.removeItem('token');
-    setToken(null);
-    navigate("/");
+    window.location.href = "/login";
   };
 
   return (
