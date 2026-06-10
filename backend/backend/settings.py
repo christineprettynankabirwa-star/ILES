@@ -1,9 +1,18 @@
 import os
 from dotenv import load_dotenv
+from pathlib import Path
 
-# This loads the variables from your .env file
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
+
+print("\n" + "="*40)
+print(" DEBUGGING YOUR .ENV FILE")
+print("="*40)
+print(f"Looking for .env at: {os.path.join(BASE_DIR, '.env')}")
+print(f"Does the file actually exist there?: {os.path.exists(os.path.join(BASE_DIR, '.env'))}")
+print(f"What password did it read?: {os.getenv('postgrest')}")
+print("="*40 + "\n")
 
 """
 Django settings for backend project.
@@ -17,11 +26,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-from pathlib import Path
+
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+# This loads the variables from your .env file
 
 
 # Quick-start development settings - unsuitable for production
