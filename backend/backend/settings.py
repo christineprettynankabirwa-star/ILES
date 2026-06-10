@@ -1,3 +1,10 @@
+import os
+from dotenv import load_dotenv
+
+# This loads the variables from your .env file
+load_dotenv()
+
+
 """
 Django settings for backend project.
 
@@ -82,11 +89,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql', 
-        'NAME':'iles_db',
-        'USER': 'postgres',
-        'PASSWORD': 'postgrest',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.getenv('iles_db'),
+        'USER': os.getenv('iles_db_host_user') or os.getenv('iles_db_user'),
+        'PASSWORD': os.getenv('postgrest'),
+        'HOST': os.getenv('iles_db_host'),
+        'PORT': os.getenv('iles_db_port'),
     }
 }
 
