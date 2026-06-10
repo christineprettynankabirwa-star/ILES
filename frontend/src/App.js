@@ -1,11 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import LandingSite from './pages/LandingSite';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AboutUs from './pages/AboutUs';
 import ForgotPassword from './pages/ForgotPassword'; 
-import InternshipList from "./pages/InternshipList";
 import Dashboard from './components/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
@@ -65,8 +64,6 @@ function App() {
                 <ProtectedRoute>
                   <>
                     <Dashboard />
-                    <hr />
-                    <InternshipList />
                     <hr />
                   </>
                 </ProtectedRoute>
