@@ -21,11 +21,12 @@ function Login({ setToken }) {
             console.log("Login response:", response.data);
 
             if (response.data.access) {
-                localStorage.setItem('access_token', response.data.access);
+                localStorage.setItem('token', response.data.access);
                 localStorage.setItem('refresh_token', response.data.refresh);
+                setToken(response.data.access);
                 console.log("Saved access_token");
             } else if (response.data.token) {
-                localStorage.setItem('access_token', response.data.token);
+                localStorage.setItem('token', response.data.token);
                 console.log("Saved token as access_token");
             } else {
                 console.log("Unknown response format:", response.data);
