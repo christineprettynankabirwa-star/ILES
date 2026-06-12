@@ -8,6 +8,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './components/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
+import StudentDashboard from './components/StudentDashboard';
 
 
 function App() {
@@ -76,6 +77,16 @@ function App() {
             
             {/* Catch-all Wildcard Redirect */}
             <Route path="*" element={<Navigate to="/" />} />
+
+            {/* 2. Make sure it is registered and protected*/}
+            <Route
+              path="/student-dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['Student']}>
+                  <StudentDashboard />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </div>
       </div>

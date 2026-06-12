@@ -5,20 +5,37 @@ import {
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
+import StudentDashboard from './StudentDashboard';
+import AdminDashboard from './AdminDashboard';
 
 const Dashboard = () => {
+
+  const navigate = useNavigate();
+  const userRole = localStorage.getItem('user_role');
+  if (userRole?.toLowerCase() === 'student') {
+    return <StudentDasboard />;
+  } else if (userRole?.toLowerCase() === 'admin') {
+    return <AdminDashboard />;
+  }
+   return (
+    <div style={{ padding: '20px' }}>
+      loading dashboard for role: {userRole || 'None detected'}...
+    </div>
+  );
+
+  const hasRedirected = useRef(false);
+
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     student_progress: [],
     pending_reviews_count: 0,
     admin_performance: {}
   });
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-   
+
   // Professional Color Palette
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
-  const hasRedirected = useRef(false);
- 
+  
+  
   useEffect(() => {
     // Token check
     const token = localStorage.getItem('access_token');
@@ -35,7 +52,7 @@ const Dashboard = () => {
         const response = await api.get('dashboard-stats/');
         setStats(response.data);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch statistics:", err);
         //if (err.response?.status === 401) {
           //localStorage.removeItem('access_token');
           //navigate('/login');
@@ -48,7 +65,19 @@ const Dashboard = () => {
     fetchStats();
   }, [navigate]);
 
-  if (loading) return <div>Loading dashboard...</div>
+  if (loading) {
+    return <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'sans-serif' }}>Loading dashboard...</div>;
+  }
+
+   //Read user role 
+  if (userRole === 'Student') {
+    return <StudentDashboard />;
+  } else if (userRole === 'Admin') {
+    return <AdminDashboard />;
+  }
+
+    //eturn <div>Loading institutional dashboard...</div>;
+  //};
 
   return (
     <div style={{ padding: '30px', backgroundColor: '#f0f2f5', borderRadius: '12px', width: '100%', minHeight: '400px' }}>

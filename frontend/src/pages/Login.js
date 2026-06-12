@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import api from '../api/axiosConfig';
 
 function Login({ setToken }) {
     const [username, setUsername] = useState('');
@@ -23,15 +24,25 @@ function Login({ setToken }) {
             if (response.data.access) {
                 localStorage.setItem('access_token', response.data.access);
                 localStorage.setItem('refresh_token', response.data.refresh);
-                console.log("Saved access_token");
+
+                localStorage.setItem('user_role', response.data.user.role);
+                const userRole = response.data.user?.role || response.data.user?.user_type || 'Student';
+                
+                console.log("Saved access_token and user_role:", response.data.user.role);
+
             } else if (response.data.token) {
                 localStorage.setItem('access_token', response.data.token);
-                console.log("Saved token as access_token");
+
+                const userRole = response.data.user?.role || resppnse.data.user?.user_type || 'Student';
+                localStorage.setItem('user_role', userRole);
+            
+                console.log("Saved token as access_token and user_role:", userRole);
             } else {
                 console.log("Unknown response format:", response.data);
             }
 
-            navigate('/');
+            navigate('/dashbord');
+
         } catch (error) {
             alert("Invalid Credentials. Please check your username and password.");
         } finally {
