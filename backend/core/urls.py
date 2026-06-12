@@ -9,7 +9,7 @@ from .views import (
     signup_view, WeeklyLogViewSet, InternshipPlacementViewSet, EvaluationCriteriaViewSet, EvaluationViewSet,
     ForgotPasswordView
 )
-from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
 
 router = DefaultRouter() 

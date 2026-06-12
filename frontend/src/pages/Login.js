@@ -22,18 +22,22 @@ function Login({ setToken }) {
             console.log("Login response:", response.data);
 
             if (response.data.access) {
-                localStorage.setItem('token', response.data.access);
+                localStorage.setItem('access_token', response.data.access);
                 localStorage.setItem('refresh_token', response.data.refresh);
 
                 localStorage.setItem('user_role', response.data.user.role);
-                const userRole = response.data.user?.role || response.data.user?.user_type || 'Student';
+                const userRole = 
+                    response.data.user?.role || 
+                    response.data.user?.user_type || 'Student';
                 
                 console.log("Saved access_token and user_role:", response.data.user.role);
+
+                localStorage.setItem('user_role', userRole);
 
             } else if (response.data.token) {
                 localStorage.setItem('access_token', response.data.token);
 
-                const userRole = response.data.user?.role || resppnse.data.user?.user_type || 'Student';
+                const userRole = response.data.user?.role || response.data.user?.user_type || 'Student';
                 localStorage.setItem('user_role', userRole);
             
                 console.log("Saved token as access_token and user_role:", userRole);

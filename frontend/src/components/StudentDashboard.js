@@ -27,9 +27,9 @@ const StudentDashboard = () => {
                 console.log("LOGS API RESPONSE:", logsResponse.data);
                 console.log("PLACEMENT API RESPONSE:", placementResponse.data);
 
-                setLogs(Array.isArray(logsResponse.data) ? logsResponse.data : []);
-                if (Array.isArray(placementResponse.data) && placementResponse.data.length > 0) {
-                    setPlacement(placementResponse.data[0]);
+                setLogs(logsResponse.data.results || []);
+                if (placementResponse.data.results?.length > 0) {
+                    setPlacement(placementResponse.data.results[0]);
                 }
                 
             } catch (err) {
