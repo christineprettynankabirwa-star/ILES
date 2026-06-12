@@ -139,14 +139,62 @@ const StudentDashboard = () => {
 
                             <button
                                 type="submit"
-                                style={{ width: '100%', padding: '12px', background: '#3498db', color: '#fff', border: 'none', }}>WorkFlow State Transition 
+                                style={{ width: '100%', padding: '12px', background: '#3498db', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}
+                                >
+                                    Process Entry Log
+                                </button> 
                         </form>
-                      )
-                      ) 
-                      }   
                     </div>
-                    
                 </div>
+
+                {/* Right Column: Historical Workflow Logs */}
+                <div style={{ flex: '2', minWidth: '500px' }}>
+                   <h3 style={{ color: '#2c3e50', marginTop: 0 }}>LogBook Submision History</h3> 
+                    {logs.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#7f8c8d', border: '2px dashed #ccc', borderRadius: '8px' }}>
+                            No logbook records submitted yet. Utilize the submissionconsole to initialize your first logging record.
+                        </div>
+                    ) : (
+                       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        {logs.map((log) => {
+                            //Dynamic CSS styling
+                            const isApporved = log.status === 'Approved' || log.status === 'Reviewed';
+                            const badgeColor = log.status === 'Approved' ? '#2ecc71' : log.status === 'Submitted' ? '#f1c40f' : '#95a5a6';
+
+                            return (
+                                <div key={log.id} style={{ padding: '20px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', position: 'relative' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                      <h4 style={{ color: '#2d3748', margin: 0 }}>Week {log.week_number} Logging Record</h4> 
+                                       <span style={{ background: badgeColor, color: '#fff', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>
+                                            {log.status}
+                                        </span>
+                                    </div>
+                                   <p style={{color: '#4a5568', fontSize: '14px', lineHeight: '1.5', margin: '0 0 15px 0' }}>{log.content}</p>
+
+                                    {/* Dynamic UI Disabling/Locking Rule based on status */}
+                                    {isApporved ? (
+                                        <small style={{ color: '#e74c3c', fontWeight: 'bold'}}>
+                                            🔒 Locked (Approved/Reviewed by Supervisor)
+                                        </small>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() => alert("Load this data record.")}
+                                            style={{ background: 'transparent', border: '1px solid #3498db', color: '#3498db', padding: '5px 12px', borderRadius: '4px', fontSize: '12px', cursor: 'pointer' }}
+                                        >
+                                            Modify Draft Context
+                                        </button>
+                                    )} 
+                                </div>   
+                            );
+                        })} 
+                    </div>
+                )}
             </div>
-    )
-}
+   
+        </div>             
+    </div>
+);
+};
+
+export default StudentDashboard;
