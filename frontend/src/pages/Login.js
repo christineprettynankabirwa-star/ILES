@@ -22,7 +22,7 @@ function Login({ setToken }) {
             console.log("Login response:", response.data);
 
             if (response.data.access) {
-                localStorage.setItem('access_token', response.data.access);
+                localStorage.setItem('token', response.data.access);
                 localStorage.setItem('refresh_token', response.data.refresh);
 
                 localStorage.setItem('user_role', response.data.user.role);

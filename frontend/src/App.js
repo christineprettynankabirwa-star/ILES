@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import LandingSite from './pages/LandingSite';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -10,19 +10,29 @@ import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 import StudentDashboard from './components/StudentDashboard';
 
-
 function App() {
-  const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const [token, setToken] = useState(() => {
+    const savedToken = localStorage.getItem('token');
+    return (savedToken && savedToken !== "undefined" && savedToken !== "null") ? savedToken : null;
+  });
+
+  useEffect(() => {
+    if (!token) {
+      localStorage.removeItem('token');
+    } else {
+      localStorage.setItem('token', token);
+    }
+  }, [token]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    window.location.href = "/login";
+    localStorage.removeItem('refresh_token');
+    setToken(null);
   };
 
   return (
     <Router>
       <div className="App">
-        {/* Render global app header navbar ONLY if user is authenticated */}
         {token && (
           <nav style={{ 
             display: 'flex', 
@@ -34,7 +44,7 @@ function App() {
           }}>
             <h2 style={{ margin: 0, fontSize: '1.2rem' }}>ILES Portal</h2>
             <div style={{ display: 'flex', gap: '20px' }}>
-              <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>Dashboard</Link>
+              <Link to="/dashboard" style={{ color: 'white', textDecoration: 'none' }}>Dashboard</Link>
               <Link to="/about" style={{ color: 'white', textDecoration: 'none' }}>About Us</Link>
               <button 
                 onClick={handleLogout} 
@@ -55,9 +65,12 @@ function App() {
 
         <div style={{ padding: token ? "20px" : "0px" }}>
           <Routes>
-            {/* Dynamic Root Route */}
+            {/* Public landing page — no auth required */}
+            <Route path="/" element={<LandingSite />} />
+
+            {/* Protected dashboard */}
             <Route 
-              path="/" 
+              path="/dashboard" 
               element={
                 <ProtectedRoute>
                   <>
@@ -65,17 +78,18 @@ function App() {
                     <hr />
                   </>
                 </ProtectedRoute>
-               } 
+              } 
             />
 
-            {/* Public Auth & Marketing Routes */}
+            {/* Public pages */}
             <Route path="/about" element={<AboutUs />} />
-            <Route path="/landing" element={<LandingSite />} />
-            <Route path="/signup" element={!token ? <Signup /> : <Navigate to="/" />} />
-            <Route path="/login" element={!token ? <Login setToken={setToken} /> : <Navigate to="/" />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            
-            {/* Catch-all Wildcard Redirect */}
+
+            {/* Auth routes — redirect to dashboard if already logged in */}
+            <Route path="/signup" element={!token ? <Signup /> : <Navigate to="/dashboard" />} />
+            <Route path="/login" element={!token ? <Login setToken={setToken} /> : <Navigate to="/dashboard" />} />
+
+            {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" />} />
 
             {/* 2. Make sure it is registered and protected*/}

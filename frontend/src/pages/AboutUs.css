@@ -1,0 +1,183 @@
+/* Overall Layout Container */
+.about-container {
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #2c3e50;
+  line-height: 1.7;
+  background-color: #f4f7f6;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* Beautiful Deep Navy Blue Header Banner */
+.about-hero {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: #ffffff;
+  text-align: center;
+  padding: 100px 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.about-hero h1 {
+  font-size: 3.2rem;
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.hero-subtitle {
+  font-size: 1.4rem;
+  margin-top: 10px;
+  opacity: 0.9;
+  font-weight: 300;
+}
+
+/* Center Content Restriction */
+.about-content {
+  max-width: 1000px;
+  margin: -50px auto 0 auto;
+  padding: 0 20px;
+}
+
+/* Introduction White Card Layout */
+.intro-card {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
+}
+
+.intro-card h2 {
+  color: #1e3c72;
+  font-size: 2rem;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+/* Stylish Mission Statement Callout Box */
+.mission-card {
+  background: #eef2f7;
+  border-left: 6px solid #1e3c72;
+  padding: 30px 40px;
+  border-radius: 0 12px 12px 0;
+  margin-bottom: 40px;
+}
+
+.mission-card h2 {
+  color: #1e3c72;
+  margin: 0 0 10px 0;
+  font-size: 1.5rem;
+}
+
+.mission-quote {
+  font-style: italic;
+  font-size: 1.2rem;
+  margin: 0;
+  color: #34495e;
+}
+
+/* Split Column Side-by-Side Grid */
+.capabilities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 30px;
+  margin-bottom: 60px;
+}
+
+.capability-box {
+  background: #ffffff;
+  padding: 35px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+}
+
+.capability-box:hover {
+  transform: translateY(-5px);
+}
+
+.capability-box h3 {
+  font-size: 1.4rem;
+  margin-top: 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.student-box h3 { color: #2ecc71; }
+.supervisor-box h3 { color: #3498db; }
+
+.capability-box ul {
+  padding-left: 20px;
+  margin-bottom: 0;
+}
+
+.capability-box li {
+  margin-bottom: 15px;
+}
+
+/* Group 8 Developer Profiles Styles */
+.team-section {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.team-section h2 {
+  color: #1e3c72;
+  font-size: 2.2rem;
+  margin-bottom: 5px;
+}
+
+.team-section .team-subtitle {
+  color: #7f8c8d;
+  margin-bottom: 40px;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px;
+  justify-content: center;
+}
+
+.member-card {
+  background: #ffffff;
+  padding: 40px 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border-top: 4px solid #1e3c72;
+  text-align: center;
+}
+
+/* Circular Initials Profile Badges */
+.avatar-placeholder {
+  width: 80px;
+  height: 80px;
+  background-color: #eef2f7;
+  color: #1e3c72;
+  border-radius: 50%;
+  margin: 0 auto 20px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.member-card h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.5rem;
+}
+
+.member-card .role {
+  color: #1e3c72;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+}
+
+.member-card .desc {
+  color: #7f8c8d;
+  font-size: 0.95rem;
+  margin: 0;
+}

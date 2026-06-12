@@ -37,11 +37,10 @@ const Dashboard = () => {
   
   
   useEffect(() => {
-    // Token check
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('token');
     if (!token && !hasRedirected.current) {
       hasRedirected.current = true;
-      localStorage.removeItem('access_token');
+      localStorage.removeItem('token');
       localStorage.removeItem('refresh_token');
       navigate('/login');
       return;
@@ -83,7 +82,6 @@ const Dashboard = () => {
     <div style={{ padding: '30px', backgroundColor: '#f0f2f5', borderRadius: '12px', width: '100%', minHeight: '400px' }}>
       <h2 style={{ color: '#1a3353', marginBottom: '25px', fontWeight: '700' }}>System Overview</h2>
 
-      {/* Analytics Cards */}
       <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
         <div style={cardStyle('#fff', '#e74c3c')}>
           <p style={labelStyle}>Pending Reviews</p>
@@ -105,7 +103,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Main Chart Section */}
       <div style={{ 
         backgroundColor: '#fff', 
         padding: '25px', 
@@ -141,7 +138,6 @@ const Dashboard = () => {
   );
 };
 
-// Internal Helper Styles
 const cardStyle = (bg, accent) => ({
   flex: 1,
   padding: '25px',

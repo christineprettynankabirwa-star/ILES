@@ -4,23 +4,24 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env'))
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
+print("\n" + "="*40)
+print("     UPGRADED .ENV DEBUGGER")
+print("="*40)
+env_path = os.path.join(BASE_DIR, '.env')
+print(f"Looking for .env at: {env_path}")
+print(f"Does the file actually exist there?: {os.path.exists(env_path)}")
 
-   # print("\n" + "="*40)
-    #print("     UPGRADED .ENV DEBUGGER")
-    #print("="*40)
-    #env_path = os.path.join(BASE_DIR, '.env')
-    #print(f"Looking for .env at: {env_path}")
-    #print(f"Does the file actually exist there?: {os.path.exists(env_path)}")
+if os.path.exists(env_path):
+    print("\n--- RAW CONTENTS OF YOUR .ENV FILE ---")
+    with open(env_path, 'r') as f:
+        print(f.read())
+    print("------------------------------") 
 
-    #if os.path.exists(env_path):
-    #    print("\n--- RAW CONTENTS OF YOUR .ENV FILE ---")
-     #   with open(env_path, 'r') as f:
-      # print("------------------------------") 
-
-
-    #print(f"What password did it read?: {os.getenv('DB_PASSWORD')}")
-    #print("="*40 + "\n")
+print(f"What password did it read?: {os.getenv('DB_PASSWORD')}")
+print("="*40 + "\n")
 
 """
 Django settings for backend project.
