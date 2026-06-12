@@ -2,10 +2,13 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-ro
 import React, { useState, useEffect } from "react";
 import LandingSite from './pages/LandingSite';
 import Login from './pages/Login';
-import Signup from './pages/Signup';
+import Signup from './pages/Signup'; 
 import AboutUs from './pages/AboutUs';
 import ForgotPassword from './pages/ForgotPassword'; 
 import Dashboard from './components/Dashboard';
+import StudentDashboard from './components/StudentDashboard';
+import AdminDashboard from './components/AdminDashboard';
+import AcademicSupervisorDashboard from './components/AcademicSupervisorDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -15,9 +18,14 @@ function App() {
     return (savedToken && savedToken !== "undefined" && savedToken !== "null") ? savedToken : null;
   });
 
+  const [role, setRole] = useState(() => {
+    return localStorage.getItem('userRole') || 'student';
+  });
+
   useEffect(() => {
     if (!token) {
       localStorage.removeItem('token');
+      localStorage.removeItem('userRole');
     } else {
       localStorage.setItem('token', token);
     }
@@ -26,7 +34,16 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('userRole');
     setToken(null);
+  };
+
+  const getDashboardRoute = (userRole) => {
+    if (userRole === 'admin') return '/admin-dashboard';
+    if (userRole === 'supervisor' || userRole === 'academic_supervisor' || userRole === 'acad_supervisor') {
+      return '/academic-supervisor-dashboard';
+    }
+    return '/student-dashboard';
   };
 
   return (
@@ -43,7 +60,7 @@ function App() {
           }}>
             <h2 style={{ margin: 0, fontSize: '1.2rem' }}>ILES Portal</h2>
             <div style={{ display: 'flex', gap: '20px' }}>
-              <Link to="/dashboard" style={{ color: 'white', textDecoration: 'none' }}>Dashboard</Link>
+              <Link to={getDashboardRoute(localStorage.getItem('userRole'))} style={{ color: 'white', textDecoration: 'none' }}>Dashboard</Link>
               <Link to="/about" style={{ color: 'white', textDecoration: 'none' }}>About Us</Link>
               <button 
                 onClick={handleLogout} 
@@ -64,31 +81,50 @@ function App() {
 
         <div style={{ padding: token ? "20px" : "0px" }}>
           <Routes>
-            {/* Public landing page — no auth required */}
             <Route path="/" element={<LandingSite />} />
 
-            {/* Protected dashboard */}
             <Route 
-              path="/dashboard" 
+              path="/student-dashboard" 
               element={
                 <ProtectedRoute>
-                  <>
-                    <Dashboard />
-                    <hr />
-                  </>
+                  <StudentDashboard />
                 </ProtectedRoute>
               } 
             />
 
-            {/* Public pages */}
+            <Route 
+              path="/admin-dashboard" 
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="/academic-supervisor-dashboard" 
+              element={
+                <ProtectedRoute>
+                  <AcademicSupervisorDashboard />
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+
             <Route path="/about" element={<AboutUs />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            {/* Auth routes — redirect to dashboard if already logged in */}
-            <Route path="/signup" element={!token ? <Signup /> : <Navigate to="/dashboard" />} />
-            <Route path="/login" element={!token ? <Login setToken={setToken} /> : <Navigate to="/dashboard" />} />
+            <Route path="/signup" element={!token ? <Signup /> : <Navigate to={getDashboardRoute(localStorage.getItem('userRole'))} />} />
+            <Route path="/login" element={!token ? <Login setToken={setToken} /> : <Navigate to={getDashboardRoute(localStorage.getItem('userRole'))} />} />
 
-            {/* Catch-all */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
