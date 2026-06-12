@@ -1,6 +1,6 @@
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
-from .models import WeeklyLog
+from .models import WeeklyLog, LogStatusHistory
 
 @receiver(pre_save, sender=WeeklyLog)
 def capture_old_status(sender, instance, **kwargs):
