@@ -7,6 +7,8 @@ const StudentDashboard = () => {
     const [loading, setLoading] =useState(true);
     const [error, setError] = useState('');
 
+    console.log("logs:", logs);
+    console.log("type:", typeof logs);
 
     const [weekNumber, setWeekNumber] = useState('');
     const [logContent, setLogContent] = useState('');
@@ -21,6 +23,10 @@ const StudentDashboard = () => {
                     api.get('weeklylogs/'),
                     api.get('internshipplacements/')
                 ]);
+
+                console.log("LOGS API RESPONSE:", logsResponse.data);
+                console.log("PLACEMENT API RESPONSE:", placementResponse.data);
+                
                 setLogs(logsResponse.data);
                 if (placementResponse.data && placementResponse.data.length > 0) {
                     setPlacement(placementResponse.data[0]);
@@ -156,13 +162,15 @@ const StudentDashboard = () => {
                         </div>
                     ) : (
                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        {logs.map((log) => {
+                        {Array.isArray(logs) && logs.map((log, index) => {
+                            <p key={index}>{log}</p> 
+                        
                             //Dynamic CSS styling
                             const isApporved = log.status === 'Approved' || log.status === 'Reviewed';
                             const badgeColor = log.status === 'Approved' ? '#2ecc71' : log.status === 'Submitted' ? '#f1c40f' : '#95a5a6';
 
                             return (
-                                <div key={log.id} style={{ padding: '20px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', position: 'relative' }}>
+                                <div key={log.id || index} style={{ padding: '20px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', position: 'relative' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                                       <h4 style={{ color: '#2d3748', margin: 0 }}>Week {log.week_number} Logging Record</h4> 
                                        <span style={{ background: badgeColor, color: '#fff', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>
