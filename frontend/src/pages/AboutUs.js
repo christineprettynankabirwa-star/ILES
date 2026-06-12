@@ -57,28 +57,6 @@ const AboutUs = () => {
             </ul>
           </div>
         </div>
-
-        {/* Team Section */}
-        <div className="team-section">
-          <h2>Meet the Developers (Group 8)</h2>
-          <p className="team-subtitle">The minds behind the development of ILES</p>
-          
-          <div className="team-grid">
-            <div className="member-card">
-              <div className="avatar-placeholder">NJ</div>
-              <h3>Naava Jacqueline</h3>
-              <p className="role">Frontend Developer & UI/UX Designer</p>
-              <p className="desc">Responsible for constructing the user interface, building responsive dashboard components in React, and optimizing the user authentication flows.</p>
-            </div>
-
-            <div className="member-card">
-              <div className="avatar-placeholder">CA</div>
-              <h3>Criss Atuhaire</h3>
-              <p className="role">Backend Engineer & Database Administrator</p>
-              <p className="desc">Responsible for architecting the relational database schema in PostgreSQL, designing secure REST API endpoints using Django, and implementing environment-driven security configurations.</p>
-            </div>
-          </div>
-        </div>
       </section>
     </div>
   );
