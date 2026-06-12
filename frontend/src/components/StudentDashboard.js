@@ -26,11 +26,12 @@ const StudentDashboard = () => {
 
                 console.log("LOGS API RESPONSE:", logsResponse.data);
                 console.log("PLACEMENT API RESPONSE:", placementResponse.data);
-                
-                setLogs(logsResponse.data);
-                if (placementResponse.data && placementResponse.data.length > 0) {
+
+                setLogs(Array.isArray(logsResponse.data) ? logsResponse.data : []);
+                if (Array.isArray(placementResponse.data) && placementResponse.data.length > 0) {
                     setPlacement(placementResponse.data[0]);
                 }
+                
             } catch (err) {
                 console.error("Dashboard extraction error:", err);
                 setError('Failed to pull system logs or active placement records.');
