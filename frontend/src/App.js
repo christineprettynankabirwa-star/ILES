@@ -11,23 +11,12 @@ import './App.css';
 import StudentDashboard from './components/StudentDashboard';
 
 function App() {
-  const [token, setToken] = useState(() => {
-    const savedToken = localStorage.getItem('token');
-    return (savedToken && savedToken !== "undefined" && savedToken !== "null") ? savedToken : null;
-  });
-
-  useEffect(() => {
-    if (!token) {
-      localStorage.removeItem('token');
-    } else {
-      localStorage.setItem('token', token);
-    }
-  }, [token]);
+  const [token, setToken] = useState(() => localStorage.getItem('access_token'));
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
-    setToken(null);
+    window.location.href = "/login";
   };
 
   return (

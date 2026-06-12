@@ -9,11 +9,19 @@ import StudentDashboard from './StudentDashboard';
 import AdminDashboard from './AdminDashboard';
 
 const Dashboard = () => {
-
+  
+  const hasRedirected = useRef(false);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    student_progress: [],
+    pending_reviews_count: 0,
+    admin_performance: {}
+  });
+
   const userRole = localStorage.getItem('user_role');
   if (userRole?.toLowerCase() === 'student') {
-    return <StudentDasboard />;
+    return <StudentDashboard />;
   } else if (userRole?.toLowerCase() === 'admin') {
     return <AdminDashboard />;
   }
@@ -23,19 +31,10 @@ const Dashboard = () => {
     </div>
   );
 
-  const hasRedirected = useRef(false);
-
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    student_progress: [],
-    pending_reviews_count: 0,
-    admin_performance: {}
-  });
-
   // Professional Color Palette
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
   
-  
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token && !hasRedirected.current) {
@@ -68,15 +67,6 @@ const Dashboard = () => {
     return <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'sans-serif' }}>Loading dashboard...</div>;
   }
 
-   //Read user role 
-  if (userRole === 'Student') {
-    return <StudentDashboard />;
-  } else if (userRole === 'Admin') {
-    return <AdminDashboard />;
-  }
-
-    //eturn <div>Loading institutional dashboard...</div>;
-  //};
 
   return (
     <div style={{ padding: '30px', backgroundColor: '#f0f2f5', borderRadius: '12px', width: '100%', minHeight: '400px' }}>
