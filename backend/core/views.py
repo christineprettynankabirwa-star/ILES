@@ -9,9 +9,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken  # Use this instead of authtoken
 from django.db.models import Count, Avg
 from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
@@ -72,11 +72,13 @@ def signup_view(request):
             role=role_value
         )
 
-        token, _ = Token.objects.get_or_create(user=user)
+        # Generate custom JWT credentials for the new user automatically
+        refresh = RefreshToken.for_user(user)
 
         return Response({
             "message": "Registration successful",
-            "token": token.key,
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
             "role": role_value
         }, status=status.HTTP_201_CREATED)
 

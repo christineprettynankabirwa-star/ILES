@@ -8,7 +8,7 @@ function Signup() {
         email: '',
         password: '',
         confirmPassword: '',
-        role: 'student' // Default matches Django model default
+        role: 'student'
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(''); 
@@ -30,26 +30,42 @@ function Signup() {
 
         setLoading(true);
         try {
-            await axios.post('http://127.0.0.1:8000/api/signup/', {
+            const response = await axios.post('http://127.0.0.1:8000/api/signup/', {
                 username: formData.username,
                 email: formData.email,
                 password: formData.password,
                 confirmPassword: formData.confirmPassword,
-                role: formData.role  // ✅ Now sends exactly what Django models expect
+                role: formData.role
             });
 
-            alert(`Account created! Please log in.`);
-            navigate('/login');
+            if (response.data.access) {
+                const token = response.data.access;
+                const userRole = response.data.role || 'student';
+
+                localStorage.setItem('token', token);
+                localStorage.setItem('refresh_token', response.data.refresh);
+                localStorage.setItem('userRole', userRole);
+
+                if (userRole === 'admin') {
+                    navigate('/admin-dashboard');
+                } else if (userRole === 'supervisor' || userRole === 'academic_supervisor' || userRole === 'acad_supervisor') {
+                    navigate('/academic-supervisor-dashboard');
+                } else {
+                    navigate('/student-dashboard');
+                }
+            } else {
+                alert(`Account created successfully! Please log in.`);
+                navigate('/login');
+            }
 
         } catch (error) {
-            const message = error.response?.data?.error || "Signup failed. Please try again.";
+            const message = error.response?.data?.error || error.response?.data?.detail || "Signup failed. Please try again.";
             setError(message);
         } finally {
             setLoading(false);
         }
     };
 
-    // Styles
     const pageStyle = {
         minHeight: '90vh', display: 'flex', alignItems: 'center',
         justifyContent: 'center', backgroundColor: '#f0f2f5', padding: '20px'
@@ -105,11 +121,7 @@ function Signup() {
                         </label>
                         <select name="role" value={formData.role} style={selectStyle} onChange={handleChange}>
                             <option value="student">Student</option>
-                            
-                            {/* ✅ Matches ('acad_supervisor', 'Academic Supervisor') */}
                             <option value="acad_supervisor">Academic Supervisor</option>
-                            
-                            {/* ✅ Matches ('work_supervisor', 'Workplace Supervisor') */}
                             <option value="work_supervisor">Workplace Supervisor</option>
                         </select>
                     </div>

@@ -6,11 +6,13 @@ function Login({ setToken }) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError('');
 
         try {
             const response = await axios.post('http://127.0.0.1:8000/api/login/', {
@@ -18,31 +20,37 @@ function Login({ setToken }) {
                 password: password 
             });
 
-            console.log("Login response:", response.data);
-
             if (response.data.access) {
-                localStorage.setItem('token', response.data.access);
+                const token = response.data.access;
+                const userRole = response.data.role || 'student';
+
+                localStorage.setItem('token', token);
                 localStorage.setItem('refresh_token', response.data.refresh);
-                setToken(response.data.access);
-                console.log("Saved access_token");
-            } else if (response.data.token) {
-                localStorage.setItem('token', response.data.token);
-                console.log("Saved token as access_token");
+                localStorage.setItem('userRole', userRole);
+                
+                setToken(token);
+
+                if (userRole === 'admin') {
+                    navigate('/admin-dashboard');
+                } else if (userRole === 'supervisor' || userRole === 'academic_supervisor' || userRole === 'acad_supervisor') {
+                    navigate('/academic-supervisor-dashboard');
+                } else {
+                    navigate('/student-dashboard');
+                }
             } else {
-                console.log("Unknown response format:", response.data);
+                setError("Invalid server authentication response format.");
             }
 
-            navigate('/');
         } catch (error) {
-            alert("Invalid Credentials. Please check your username and password.");
+            const message = error.response?.data?.detail || error.response?.data?.error || "Invalid Credentials. Please check your username and password.";
+            setError(message);
         } finally {
             setLoading(false);    
         } 
     };
 
-    // Professional UI Styles
     const pageStyle = {
-        height: '80vh',
+        height: '85vh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -57,7 +65,7 @@ function Login({ setToken }) {
         padding: '40px',
         backgroundColor: '#ffffff',
         borderRadius: '15px',
-        boxShadow: '0 10px 25 rgba(0,0,0,0.1)',
+        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
         textAlign: 'center'
     };
 
@@ -67,6 +75,8 @@ function Login({ setToken }) {
         border: '1px solid #ddd',
         fontSize: '16px',
         outline: 'none',
+        width: '100%', 
+        boxSizing: 'border-box',
         transition: 'border-color 0.3s'
     };
 
@@ -85,7 +95,6 @@ function Login({ setToken }) {
 
     return (
         <div style={pageStyle}>
-            {/* Link pointing to the root route landing site */}
             <Link 
                 to="/" 
                 style={{ 
@@ -106,6 +115,12 @@ function Login({ setToken }) {
                 <h2 style={{ color: '#2c3e50', marginBottom: '10px', fontWeight: '700' }}>Welcome Back</h2>
                 <p style={{ color: '#7f8c8d', marginBottom: '30px' }}>Log in to the ILES Portal</p>
                 
+                {error && (
+                    <div style={{ backgroundColor: '#fdecea', color: '#c0392b', padding: '10px 14px', borderRadius: '8px', fontSize: '14px', textAlign: 'center', marginBottom: '20px', border: '1px solid #f5c6cb' }}>
+                        {error}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '5px' }}>
                         <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#34495e', textTransform: 'uppercase' }}>Username</label>
@@ -115,8 +130,6 @@ function Login({ setToken }) {
                             value={username} 
                             onChange={e => setUsername(e.target.value)} 
                             style={inputStyle}
-                            onFocus={(e) => e.target.style.borderColor = '#3498db'}
-                            onBlur={(e) => e.target.style.borderColor = '#ddd'}
                             required
                         />
                     </div>
@@ -129,8 +142,6 @@ function Login({ setToken }) {
                             value={password} 
                             onChange={e => setPassword(e.target.value)} 
                             style={inputStyle}
-                            onFocus={(e) => e.target.style.borderColor = '#3498db'}
-                            onBlur={(e) => e.target.style.borderColor = '#ddd'}
                             required
                         />
                     </div>
@@ -139,8 +150,6 @@ function Login({ setToken }) {
                         type="submit" 
                         disabled={loading} 
                         style={buttonStyle}
-                        onMouseOver={(e) => !loading && (e.target.style.backgroundColor = '#34495e')}
-                        onMouseOut={(e) => !loading && (e.target.style.backgroundColor = '#2c3e50')}
                     >
                         {loading ? 'Authenticating...' : 'Sign In'}
                     </button>
