@@ -5,9 +5,7 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 
-
 # DEPARTMENT
-
 class Department(models.Model):
     name = models.CharField(max_length=255)
     code = models.CharField(max_length=10, unique=True)
@@ -15,9 +13,7 @@ class Department(models.Model):
     def __str__(self):
         return self.name
 
-
-# CUSTOMUSER  
-
+# CUSTOM USER
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
         ('student', 'Student'),
@@ -36,8 +32,6 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
-
-
     @property
     def is_student(self):
         return self.role == 'student'
@@ -59,15 +53,13 @@ class CustomUser(AbstractUser):
         verbose_name_plural = "Custom Users"
 
 # INTERNSHIP PLACEMENT 
-
 class InternshipPlacement(models.Model):
     student = models.ForeignKey(
-        settings.AUTH_USER_MODEL,        
+        settings.AUTH_USER_MODEL, 
         related_name='placements',
         on_delete=models.CASCADE,
         limit_choices_to={'role': 'student'}
     )
-
     academic_supervisor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name='supervised_placements',
@@ -75,7 +67,6 @@ class InternshipPlacement(models.Model):
         null=True, blank=True,
         limit_choices_to={'role': 'acad_supervisor'}
     )
-
     workplace_supervisor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name='workplace_placements',
@@ -94,14 +85,10 @@ class InternshipPlacement(models.Model):
     course = models.CharField(max_length=255)
     start_date = models.DateField()
     end_date = models.DateField()
-
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
-
     total_score = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
     final_grade = models.CharField(max_length=2, blank=True)
-
     def clean(self):
         if self.start_date and self.end_date:
             if self.start_date >= self.end_date:
@@ -126,9 +113,8 @@ class InternshipPlacement(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.organization_name}"
-
-# WEEKLY LOG  (Week 6 requirement)
-
+    
+# WEEKLY LOG  
 class WeeklyLog(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -139,9 +125,9 @@ class WeeklyLog(models.Model):
 
     VALID_TRANSITIONS = {
         'draft': ['submitted'],
-        'submitted': ['reviewed', 'draft'],  
+        'submitted': ['reviewed', 'draft'],
         'reviewed': ['approved', 'submitted'],
-        'approved': [],                    
+        'approved': [], 
     }
 
     placement = models.ForeignKey(
@@ -176,7 +162,6 @@ class WeeklyLog(models.Model):
         return f"Week {self.week_number} - {self.student.username} ({self.status})"
 
     def clean(self):
-        # ── Deadline enforcement (Week 6) ──
         if self.week_start_date:
             submission_deadline = self.week_start_date + timedelta(days=7)
             if self.status == 'submitted' and timezone.now().date() > submission_deadline:
@@ -190,7 +175,6 @@ class WeeklyLog(models.Model):
                 raise ValidationError(
                     "This log has been approved and can no longer be edited."
                 )
-
             if original.status != self.status:
                 allowed = self.VALID_TRANSITIONS.get(original.status, [])
                 if self.status not in allowed:
@@ -224,10 +208,9 @@ class Evaluation(models.Model):
         on_delete=models.CASCADE,
         limit_choices_to={'role': 'acad_supervisor'}
     )
-    attendance_punctuality = models.PositiveIntegerField(default=0)   
-    technical_competence = models.PositiveIntegerField(default=0)     
-    quality_of_work = models.PositiveIntegerField(default=0)          
-
+    attendance_punctuality = models.PositiveIntegerField(default=0) 
+    technical_competence = models.PositiveIntegerField(default=0)   
+    quality_of_work = models.PositiveIntegerField(default=0)         
     total_weighted_score = models.FloatField(editable=False, default=0.0)
     supervisor_comments = models.TextField(blank=True)
     date_evaluated = models.DateTimeField(auto_now_add=True)
@@ -263,7 +246,6 @@ class Evaluation(models.Model):
             grade = 'D'
         else:
             grade = 'F'
-
         InternshipPlacement.objects.filter(pk=self.placement_id).update(
             total_score=score,
             final_grade=grade,
@@ -271,9 +253,8 @@ class Evaluation(models.Model):
 
     def __str__(self):
         return f"Evaluation: {self.placement.student.username} ({self.total_weighted_score})"
-
+    
 # LOG STATUS HISTORY
-
 class LogStatusHistory(models.Model):
     log = models.ForeignKey(WeeklyLog, on_delete=models.CASCADE, related_name='history')
     old_status = models.CharField(max_length=20)

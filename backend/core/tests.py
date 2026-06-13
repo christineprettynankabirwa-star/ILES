@@ -2,17 +2,21 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from datetime import date, timedelta
+
 from rest_framework.test import APIClient
 from rest_framework import status
+
 from .models import (
     CustomUser, Department, InternshipPlacement,
     WeeklyLog, Evaluation, EvaluationCriteria,
 )
 
+
 def make_user(username, role='student', password='TestPass123!'):
     return CustomUser.objects.create_user(
         username=username, password=password, role=role
     )
+
 
 def make_placement(student, acad_sup=None, work_sup=None, offset_days=0):
     start = date.today() + timedelta(days=offset_days)
@@ -72,7 +76,7 @@ class InternshipPlacementModelTest(TestCase):
         from django.core.exceptions import ValidationError
         make_placement(self.student, offset_days=0)
         with self.assertRaises(ValidationError):
-            make_placement(self.student, offset_days=10)  # overlaps
+            make_placement(self.student, offset_days=10)  
 
 class WeeklyLogModelTest(TestCase):
     def setUp(self):
@@ -97,7 +101,7 @@ class WeeklyLogModelTest(TestCase):
     def test_invalid_transition_raises_error(self):
         from django.core.exceptions import ValidationError
         self.log._changed_by = self.student
-        self.log.status = 'approved' 
+        self.log.status = 'approved'  
         with self.assertRaises(ValidationError):
             self.log.save()
 
@@ -124,6 +128,7 @@ class EvaluationModelTest(TestCase):
             quality_of_work=60,
         )
         self.assertAlmostEqual(eval_.total_weighted_score, 71.0)
+
     def test_grade_synced_to_placement(self):
         Evaluation.objects.create(
             placement=self.placement,
@@ -141,11 +146,10 @@ class EvaluationModelTest(TestCase):
             Evaluation.objects.create(
                 placement=self.placement,
                 academic_supervisor=self.acad_sup,
-                attendance_punctuality=150,
+                attendance_punctuality=150, 
                 technical_competence=50,
                 quality_of_work=50,
             )
-
 
 class AuthAPITest(TestCase):
     def setUp(self):
@@ -200,5 +204,3 @@ class WeeklyLogAPITest(TestCase):
         url = reverse('weeklylog-list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-from django.test import TestCase
-

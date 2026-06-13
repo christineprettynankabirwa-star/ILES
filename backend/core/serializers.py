@@ -11,14 +11,12 @@ from .models import (
 User = get_user_model()
 
 # DEPARTMENT
-
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
         fields = '__all__'
 
 # CUSTOM USER
-
 class CustomUserSerializer(serializers.ModelSerializer):
     department_name = serializers.CharField(source='department.name', read_only=True)
 
@@ -30,8 +28,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'staff_number', 'phone_number',
         ]
 
-# USER REGISTRATION
-
+# USER REGISTRATION 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True, required=True, validators=[validate_password]
@@ -58,15 +55,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user = CustomUser(**validated_data)
         user.set_password(password)
         user.save()
-
         from django.contrib.auth.models import Group
         group, _ = Group.objects.get_or_create(name=user.get_role_display())
         user.groups.add(group)
-
         return user
 
 # JWT — custom claims 
-
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -77,6 +71,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['department_id'] = user.department_id
         token['department'] = user.department.name if user.department else None
         return token
+
     def validate(self, attrs):
         data = super().validate(attrs)
         data['user'] = {
@@ -90,9 +85,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'department': self.user.department.name if self.user.department else None,
         }
         return data
-
-# INTERNSHIP PLACEMENT
-
+    
+# INTERNSHIP PLACEMENT  
 class InternshipPlacementSerializer(serializers.ModelSerializer):
     student_name = serializers.ReadOnlyField(source='student.username')
     academic_supervisor_name = serializers.ReadOnlyField(
@@ -117,6 +111,7 @@ class InternshipPlacementSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"end_date": "The internship end date must be after the start date."}
                 )
+
             overlapping = InternshipPlacement.objects.filter(
                 student=student,
                 start_date__lt=end,
@@ -131,9 +126,8 @@ class InternshipPlacementSerializer(serializers.ModelSerializer):
                 )
 
         return data
-
-# LOG STATUS HISTORY
-
+    
+# LOG STATUS HISTORY 
 class LogStatusHistorySerializer(serializers.ModelSerializer):
     changed_by_username = serializers.ReadOnlyField(source='changed_by.username')
 
@@ -141,7 +135,7 @@ class LogStatusHistorySerializer(serializers.ModelSerializer):
         model = LogStatusHistory
         fields = '__all__'
 
-# WEEKLY LOG
+# WEEKLY LOG 
 
 class WeeklyLogSerializer(serializers.ModelSerializer):
     student_name = serializers.ReadOnlyField(source='student.username')
@@ -169,14 +163,12 @@ class WeeklyLogSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 # EVALUATION CRITERIA 
-
 class EvaluationCriteriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = EvaluationCriteria
         fields = '__all__'
 
-# EVALUATION
-
+# EVALUATION 
 class EvaluationSerializer(serializers.ModelSerializer):
     student_name = serializers.ReadOnlyField(source='placement.student.username')
     computed_score = serializers.ReadOnlyField(source='total_weighted_score')
@@ -192,7 +184,7 @@ class EvaluationSerializer(serializers.ModelSerializer):
         )
         if (
             placement
-            and not self.instance 
+            and not self.instance  # only on create
             and Evaluation.objects.filter(placement=placement).exists()
         ):
             raise serializers.ValidationError(

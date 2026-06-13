@@ -35,12 +35,10 @@ User = get_user_model()
 
 # AUTH
 class CustomTokenObtainPairView(TokenObtainPairView):
-    """Login — returns JWT pair + user info (Week 4)."""
     serializer_class = CustomTokenObtainPairSerializer
 
 
 class RegisterView(generics.CreateAPIView):
-    """Full registration with validation (Week 4)."""
     serializer_class = UserRegistrationSerializer
     permission_classes = [AllowAny]
 
@@ -66,10 +64,6 @@ class RegisterView(generics.CreateAPIView):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def signup_view(request):
-    """
-    Quick signup (used by the React frontend form).
-    Delegates to UserRegistrationSerializer for DRY validation.
-    """
     serializer = UserRegistrationSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -104,7 +98,6 @@ class LogoutView(generics.GenericAPIView):
             return Response({"message": "Logged out successfully."}, status=200)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
-
 
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
@@ -152,12 +145,11 @@ def user_profile(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return Response(CustomUserSerializer(user).data)
 
-# USER MANAGEMENT  
+# USER MANAGEMENT  (Week 4)
 
 class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    # FIX: was AllowAny — exposing all user data to anyone is a security risk
     permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
@@ -173,35 +165,29 @@ class DepartmentListCreateAPIView(ListCreateAPIView):
     serializer_class = DepartmentSerializer
     permission_classes = [IsAdminOrReadOnly]
 
-# INTERNSHIP PLACEMENT
+# INTERNSHIP PLACEMENT 
 
 class InternshipPlacementViewSet(viewsets.ModelViewSet):
     serializer_class = InternshipPlacementSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        # Students see only their own placements
+        user = self.request.users
         if user.role == 'student':
             return InternshipPlacement.objects.filter(student=user)
-        # Workplace supervisor sees placements they supervise
         if user.role == 'work_supervisor':
             return InternshipPlacement.objects.filter(workplace_supervisor=user)
-        # Academic supervisor sees their assigned placements
         if user.role == 'acad_supervisor':
             return InternshipPlacement.objects.filter(academic_supervisor=user)
-        # Admin sees everything
         return InternshipPlacement.objects.all()
 
     def perform_create(self, serializer):
-        # If the requester is a student, auto-assign them
         if self.request.user.role == 'student':
             serializer.save(student=self.request.user)
         else:
             serializer.save()
 
 # WEEKLY LOG 
-
 
 class WeeklyLogListCreateAPIView(ListCreateAPIView):
     """Simple list/create (kept for backward compat)."""
@@ -213,7 +199,6 @@ class WeeklyLogListCreateAPIView(ListCreateAPIView):
         if user.role == 'student':
             return WeeklyLog.objects.filter(student=user)
         return WeeklyLog.objects.all()
-
 
 class WeeklyLogViewSet(viewsets.ModelViewSet):
     serializer_class = WeeklyLogSerializer
@@ -234,7 +219,6 @@ class WeeklyLogViewSet(viewsets.ModelViewSet):
         return WeeklyLog.objects.all()
 
     def perform_create(self, serializer):
-        """Auto-assign the logged-in student as the log owner."""
         if self.request.user.role != 'student':
             raise serializers.ValidationError("Only students can create weekly logs.")
         instance = serializer.save(student=self.request.user)
@@ -248,10 +232,6 @@ class WeeklyLogViewSet(viewsets.ModelViewSet):
             permission_classes=[IsWorkplaceSupervisor],
             url_path='review')
     def review(self, request, pk=None):
-        """
-        Workplace supervisor submits a review with comments.
-        Transitions: submitted → reviewed
-        """
         log = self.get_object()
         if log.status != 'submitted':
             return Response(
@@ -266,15 +246,11 @@ class WeeklyLogViewSet(viewsets.ModelViewSet):
         log.status = 'reviewed'
         log.save()
         return Response(WeeklyLogSerializer(log).data)
-    
+
     @action(detail=True, methods=['patch'],
             permission_classes=[IsAcademicSupervisor],
             url_path='approve')
     def approve(self, request, pk=None):
-        """
-        Academic supervisor approves a reviewed log.
-        Transitions: reviewed → approved
-        """
         log = self.get_object()
         if log.status != 'reviewed':
             return Response(
@@ -286,7 +262,7 @@ class WeeklyLogViewSet(viewsets.ModelViewSet):
         log.save()
         return Response(WeeklyLogSerializer(log).data)
 
-# EVALUATION 
+# EVALUATION
 
 class EvaluationCriteriaViewSet(viewsets.ModelViewSet):
     queryset = EvaluationCriteria.objects.all()
@@ -307,7 +283,6 @@ class EvaluationViewSet(viewsets.ModelViewSet):
         return Evaluation.objects.all()
 
     def perform_create(self, serializer):
-        # FIX: auto-assign the academic supervisor from the request user
         if self.request.user.role != 'acad_supervisor':
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only academic supervisors can create evaluations.")
@@ -316,6 +291,7 @@ class EvaluationViewSet(viewsets.ModelViewSet):
 # DASHBOARD 
 
 class DashboardStatsView(APIView):
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -331,7 +307,6 @@ class DashboardStatsView(APIView):
         if since:
             placements = placements.filter(created_at__gte=since)
 
-        # Role-specific filtering
         if user.role == 'student':
             placements = placements.filter(student=user)
         elif user.role == 'acad_supervisor':
@@ -357,6 +332,7 @@ class DashboardStatsView(APIView):
                 avg_score=Avg('total_weighted_score'),
                 total_evals=Count('id'),
             )
+        
             grade_dist = list(
                 InternshipPlacement.objects.values('final_grade')
                 .annotate(count=Count('id'))
