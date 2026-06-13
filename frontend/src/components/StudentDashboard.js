@@ -105,7 +105,6 @@ const CSS = `
   .ov-placement-name { font-size: 14px; font-weight: 700; color: #0F172A; }
   .ov-placement-meta { font-size: 12.5px; color: #64748B; margin-top: 2px; }
   .ov-placement-fields { display: flex; gap: 24px; flex-wrap: wrap; }
-  .ov-field { }
   .ov-field-label { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #94A3B8; margin-bottom: 3px; }
   .ov-field-value { font-size: 13px; font-weight: 600; color: #0F172A; }
 
@@ -144,7 +143,6 @@ const CSS = `
   .wf-arrow { font-size: 12px; color: #94A3B8; }
   .s-draft     { background: #F1F5F9; color: #64748B; border: 1px solid #E2E8F0; }
   .s-submitted { background: #FFFBEB; color: #D97706; border: 1px solid #FDE68A; }
-  .s-reviewed  { background: #F5F3FF; color: #7C3AED; border: 1px solid #DDD6FE; }
   .s-approved  { background: #ECFDF5; color: #059669; border: 1px solid #6EE7B7; }
 
   /* Log list */
@@ -159,7 +157,6 @@ const CSS = `
 
   /* Misc */
   .divider { border: none; border-top: 1px solid #E2E8F0; margin: 22px 0; }
-  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #6366F1; margin-bottom: 14px; }
   .empty { text-align: center; padding: 48px 20px; color: #94A3B8; }
   .empty-icon { font-size: 36px; margin-bottom: 12px; }
   .empty h4 { font-size: 14px; font-weight: 600; color: #64748B; margin-bottom: 6px; }
@@ -172,6 +169,7 @@ const CSS = `
   .mobile-tabs { display: none; background: #0F172A; padding: 8px; gap: 4px; overflow-x: auto; position: sticky; top: 0; z-index: 100; }
   .m-tab { background: transparent; border: none; color: rgba(255,255,255,0.6); padding: 8px 12px; font-size: 12.5px; font-weight: 500; white-space: nowrap; border-radius: 5px; cursor: pointer; font-family: 'Inter', sans-serif; }
   .m-tab.active { background: rgba(255,255,255,0.1); color: #fff; }
+  
   @media (max-width: 1100px) {
     .mobile-tabs { display: flex; }
     .main { padding: 24px 20px; }
@@ -196,8 +194,6 @@ const initials = (name = '') =>
 
 const fmtDate = (iso) =>
   iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-
-const val = (v) => v || null; 
 
 const NAV = [
   { id: 'overview',   icon: '🏠', label: 'Overview' },
@@ -350,7 +346,7 @@ export default function StudentDashboard() {
   const total     = dash.metrics.totalWeeks || 12;
   const submitted = dash.metrics.totalWeeksSubmitted;
   const pct       = Math.round((submitted / total) * 100);
-  const p         = dash.placement;   // InternshipPlacement fields (see models.py)
+  const p         = dash.placement;
   const avgScore  = dash.weeklyPerformance.length
     ? Math.round(dash.weeklyPerformance.reduce((s, w) => s + (w.score || 0), 0) / dash.weeklyPerformance.length)
     : null;
@@ -366,7 +362,7 @@ export default function StudentDashboard() {
     <>
       <style>{CSS}</style>
       <div className="shell">
-      {}
+      
       <aside className="sidebar">
         <div className="sb-brand">
           <div className="sb-pill">ILES · PORTAL</div>
@@ -398,9 +394,7 @@ export default function StudentDashboard() {
         </div>
       </aside>
 
-      {/* ══ MAIN ══════════════════════════════════════════════════════════════ */}
       <main className="main">
-
         {/* Mobile tab bar */}
         <div className="mobile-tabs">
           {NAV.map(n => (
@@ -426,7 +420,6 @@ export default function StudentDashboard() {
               {tab === 'history'   && 'All your submitted weekly logs and their review status.'}
             </div>
           </div>
-          {/* Placement chip in topbar */}
           <div className="placement-chip">
             <div className={`dot ${p?.is_active ? 'green' : 'orange'}`} />
             <strong>{p?.organization_name || 'No placement yet'}</strong>
@@ -437,7 +430,6 @@ export default function StudentDashboard() {
 
         {/* ══ OVERVIEW ════════════════════════════════════════════════════════ */}
         {tab === 'overview' && (<>
-
           {/* Stat cards */}
           <div className="stats-row">
             <div className="stat-card c-indigo">
@@ -463,7 +455,7 @@ export default function StudentDashboard() {
             </div>
           </div>
 
-          {/* ── Placement summary strip ── */}
+          {/* Placement summary strip */}
           {p ? (
             <div className="ov-placement">
               <div className="ov-placement-icon">🏢</div>
@@ -502,7 +494,7 @@ export default function StudentDashboard() {
               <div className="no-placement-icon">🏢</div>
               <div>
                 <h4>No placement assigned yet</h4>
-                <p>Your internship placement will appear here once the administrator assigns you to an organisation. Contact your internship coordinator if this is unexpected.</p>
+                <p>Your internship placement will appear here once the administrator assigns you to an organisation.</p>
               </div>
             </div>
           )}
@@ -556,25 +548,30 @@ export default function StudentDashboard() {
           {/* Recent logs */}
           {dash.recentLogs.length > 0 && (
             <div className="panel">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifycontent: 'space-between', marginBottom: 16 }}>
                 <div>
                   <div className="panel-title">Recent Logs</div>
-                  <div style={{ fontSize: 12.5, color: '#64748B', marginTop: 2 }}>
+                  <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: 2 }}>
                     Your last {Math.min(dash.recentLogs.length, 4)} entries
                   </div>
                 </div>
-                <button className="btn btn-ghost" style={{ fontSize: 12, padding: '6px 12px' }}
+                <button className="btn btn-ghost" style={{ fontSize: 12, padding: '6px 12px', marginLeft: 'auto' }}
                   onClick={() => setTab('history')}>View all →</button>
               </div>
               <div className="log-list">
-                {dash.recentLogs.slice(0, 4).map((log, i) => (
-                  <div className="log-item" key={log.id ?? i}>
-                    <div className="log-week">W<br />{log.week_number ?? i + 1}</div>
+                {dash.recentLogs.slice(0, 4).map((log, index) => (
+                  <div key={log.id || index} className="log-item">
+                    <div className="log-week">Wk<br />{log.week_number}</div>
                     <div className="log-info">
-                      <div className="log-title">{log.activities?.slice(0, 72)}{log.activities?.length > 72 ? '…' : ''}</div>
-                      <div className="log-date">{fmtDate(log.week_start_date)}</div>
+                      <div className="log-title">{log.activities || 'No Activities Listed'}</div>
+                      <div className="log-date">{fmtDate(log.week_start_date)} – {fmtDate(log.week_end_date)}</div>
                     </div>
-                    <span className={`status-pill s-${log.status?.toLowerCase()}`}>{log.status}</span>
+                    <span className={`status-pill ${
+                      log.status === 'approved' ? 's-approved' : 
+                      log.status === 'submitted' ? 's-submitted' : 's-draft'
+                    }`}>
+                      {log.status}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -582,243 +579,183 @@ export default function StudentDashboard() {
           )}
         </>)}
 
-        {/* ══ PLACEMENT TAB ════════════════════════════════════════════════════ */}
+        {/* ══ MY PLACEMENT ════════════════════════════════════════════════════ */}
         {tab === 'placement' && (
           <div className="panel">
-            <div className="panel-title">Internship Placement Details</div>
-            <div className="panel-sub">
-              Your official workplace assignment as recorded by the Internship Administrator
-            </div>
-
-            {p ? (<>
-
-              {/* Organisation header */}
-              <div className="p-header">
-                <div className="p-org-icon">🏢</div>
-                <div style={{ flex: 1 }}>
-                  <div className="p-org-name">{p.organization_name}</div>
-                  <div className="p-org-sub">{p.position} &nbsp;·&nbsp; {p.location}</div>
-                </div>
-                <span className={`sbadge ${p.is_active ? 'active' : 'inactive'}`}>
-                  {p.is_active ? '● Active' : '○ Inactive'}
-                </span>
-              </div>
-
-              {/* ── Section 1: Organisation ── */}
-              <div className="section-label">Organisation Details</div>
-              <div className="p-grid">
-                <PField label="Organisation Name"    value={val(p.organization_name)} />
-                <PField label="Registration Number"  value={val(p.registration_number)} />
-                <PField label="Position / Role"      value={val(p.position)} />
-                <PField label="Location"             value={val(p.location)} />
-                <PField label="Course"               value={val(p.course)} />
-                <PField label="Duration"             value={val(p.duration)} />
-                <PField label="Stipend"              value={val(p.stipend)} />
-                <PField label="Start Date"           value={fmtDate(p.start_date)} />
-                <PField label="End Date"             value={fmtDate(p.end_date)} />
-              </div>
-
-              {/* ── Section 2: Supervisors ── */}
-              <div className="section-label" style={{ marginTop: 20 }}>Supervisors</div>
-              <div className="p-grid">
-                <PField label="Workplace Supervisor"        value={val(p.workplace_supervisor_name)} />
-                <PField label="Workplace Supervisor Email"  value={val(p.workplace_supervisor_email)} />
-                <PField label="Academic Supervisor"         value={val(p.academic_supervisor)} />
-                <PField label="Academic Supervisor Email"   value={val(p.academic_supervisor_email)} />
-              </div>
-
-              {/* ── Section 3: Score / Grade ── */}
-              {(p.total_score > 0 || p.final_grade) && (<>
-                <div className="section-label" style={{ marginTop: 20 }}>Evaluation Result</div>
-                <div className="p-footer">
-                  <div className="p-footer-item">
-                    Total Score: <b>{parseFloat(p.total_score).toFixed(2)}%</b>
+            {p ? (
+              <>
+                <div className="p-header">
+                  <div className="p-org-icon">🏢</div>
+                  <div>
+                    <div className="p-org-name">{p.organization_name}</div>
+                    <div className="p-org-sub">{p.industry_sector || 'General Industry'} Sector</div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div className="p-score-badge">
-                      <div>
-                        <div className="p-score-label">Weighted Score</div>
-                        <div className="p-score-val">{parseFloat(p.total_score).toFixed(1)}%</div>
-                      </div>
+                  {p.final_grade && (
+                    <div style={{ marginLeft: 'auto' }}>
+                      <GradeBadge grade={p.final_grade} />
                     </div>
-                    {p.final_grade && (
-                      <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: 10, fontWeight: 600, color: '#94A3B8', marginBottom: 4 }}>GRADE</div>
-                        <GradeBadge grade={p.final_grade} />
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
-              </>)}
 
-              {/* ── Section 4: Description ── */}
-              {p.description && (<>
-                <div className="section-label" style={{ marginTop: 20 }}>Description / Notes</div>
-                <div className="p-description">{p.description}</div>
-              </>)}
-
-              {/* Action buttons */}
-              <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
-                <button className="btn btn-primary" onClick={() => setTab('logbook')}>✏️ Submit Weekly Log</button>
-                <button className="btn btn-ghost"   onClick={() => setTab('history')}>📋 View Log History</button>
-              </div>
-
-            </>) : (
-              <div className="no-placement">
-                <div className="no-placement-icon">🏢</div>
-                <div>
-                  <h4>No placement assigned yet</h4>
-                  <p>
-                    Your internship placement details will appear here once the administrator
-                    assigns you to an organisation. Please contact your internship coordinator
-                    if you believe this is an error.
-                  </p>
+                <div className="p-section-title">Assignment Configurations</div>
+                <div className="p-grid">
+                  <PField label="Assigned Position / Role" value={p.position} />
+                  <PField label="Physical Workplace Address" value={p.location} />
+                  <PField label="Internship Duration" value={p.duration} />
+                  <PField label="Placement Start Date" value={fmtDate(p.start_date)} />
+                  <PField label="Placement End Date" value={fmtDate(p.end_date)} />
+                  <PField label="Status Configuration" value={p.is_active ? 'Active Assignment' : 'Suspended/Inactive'} />
                 </div>
+
+                <div className="p-section-title">Supervisor Contact Points</div>
+                <div className="p-grid">
+                  <PField label="Workplace Supervisor" value={p.workplace_supervisor_name} />
+                  <PField label="Supervisor Email" value={p.workplace_supervisor_email} />
+                  <PField label="Academic Examiner/Supervisor" value={p.academic_supervisor_name || 'Unassigned'} />
+                </div>
+
+                {p.description && (
+                  <>
+                    <div className="p-section-title">Scope of Work &amp; Objectives</div>
+                    <div className="p-description">{p.description}</div>
+                  </>
+                )}
+              </>
+            ) : (
+              <div className="empty">
+                <div className="empty-icon">🏢</div>
+                <h4>No Placement Information Found</h4>
+                <p>You haven't been assigned to an organization workflow yet.</p>
               </div>
             )}
           </div>
         )}
 
-        {/* ══ LOGBOOK ══════════════════════════════════════════════════════════ */}
+        {/* ══ WEEKLY LOGBOOK FORM ═════════════════════════════════════════════ */}
         {tab === 'logbook' && (
-          <div className="panel" style={{ maxWidth: 700 }}>
-            <div className="panel-title">Submit Weekly Log Entry</div>
-            <div className="panel-sub">
-              Record what you did this week. Save as Draft to edit later, or Submit to send for supervisor review.
-            </div>
+          <div className="panel">
+            <div className="panel-title">Submit New Journal Entry</div>
+            <div className="panel-sub">Document your task progressions, technical blockers, and resolutions.</div>
 
             <div className="workflow-guide">
-              <span className="wf-step s-draft">📝 Draft</span>
+              <span className="wf-step s-draft">1. Save Draft</span>
               <span className="wf-arrow">→</span>
-              <span className="wf-step s-submitted">📤 Submitted</span>
+              <span className="wf-step s-submitted">2. Submit Log</span>
               <span className="wf-arrow">→</span>
-              <span className="wf-step s-reviewed">🔍 Reviewed</span>
-              <span className="wf-arrow">→</span>
-              <span className="wf-step s-approved">✅ Approved</span>
+              <span className="wf-step s-approved">3. Under Review &amp; Marking</span>
             </div>
 
-              <hr className="divider" />
-
             {alert.text && (
-              <div className={`alert ${alert.type}`}>
-                <span className="alert-icon">{alert.type === 'success' ? '✓' : '✕'}</span>
+              <div className={`alert ${alert.type === 'success' ? 'success' : 'error'}`}>
+                <span className="alert-icon">{alert.type === 'success' ? '✅' : '❌'}</span>
                 <div>{alert.text}</div>
               </div>
             )}
 
-            <div className="section-label">1 · Week Details</div>
-
-            <div className="fg">
-              <label className="flabel">Week Number <span className="req">*</span></label>
-              <input type="number" name="weekNumber" className="finput narrow"
-                value={form.weekNumber} onChange={handleChange} placeholder="e.g. 7" min="1" max="52" />
-            </div>
-
             <div className="form-row">
               <div className="fg">
-                <label className="flabel">Week Start Date <span className="req">*</span></label>
-                <input type="date" name="weekStartDate" className="finput"
-                  value={form.weekStartDate} onChange={handleChange} />
+                <label className="flabel">Week Number <span className="req">*</span></label>
+                <input type="number" name="weekNumber" className="finput narrow" min="1" max="52" placeholder="e.g. 3"
+                  value={form.weekNumber} onChange={handleChange} disabled={submitting} />
               </div>
               <div className="fg">
-                <label className="flabel">Week End Date <span className="req">*</span></label>
+                <label className="flabel">Start Date <span className="req">*</span></label>
+                <input type="date" name="weekStartDate" className="finput"
+                  value={form.weekStartDate} onChange={handleChange} disabled={submitting} />
+              </div>
+              <div className="fg">
+                <label className="flabel">End Date <span className="req">*</span></label>
                 <input type="date" name="weekEndDate" className="finput"
-                  value={form.weekEndDate} onChange={handleChange} />
+                  value={form.weekEndDate} onChange={handleChange} disabled={submitting} />
               </div>
             </div>
 
-            <hr className="divider" />
-            <div className="section-label">2 · Work Report</div>
-
             <div className="fg">
-              <label className="flabel">Tasks &amp; Activities Undertaken <span className="req">*</span></label>
-              <textarea name="activities" className="ftextarea" value={form.activities}
-                onChange={handleChange}
-                placeholder="Describe the tasks assigned to you, tools or technologies used, meetings attended, code written, reports produced, or any other work done this week…"
-                rows={6} />
-              <div className="char-count">{form.activities.length} characters</div>
+              <label className="flabel">Tasks &amp; Activities Performed <span className="req">*</span></label>
+              <textarea name="activities" className="ftextarea" rows="5" placeholder="Detail your project features, bugs resolved, and systems configurations..."
+                value={form.activities} onChange={handleChange} disabled={submitting} />
+              <div className="char-count">{form.activities.length} characters written</div>
             </div>
 
             <div className="fg">
-              <label className="flabel">Challenges Faced &amp; Lessons Learned</label>
-              <textarea name="challenges" className="ftextarea" value={form.challenges}
-                onChange={handleChange}
-                placeholder="Describe any blockers, how you resolved them, and key skills or insights gained this week…"
-                rows={4} />
-              <div className="char-count">{form.challenges.length} characters</div>
-            </div>
-
-            <hr className="divider" />
-
-            <div style={{ fontSize: 12, color: '#64748B', lineHeight: 1.65 }}>
-              <b>Save as Draft</b> — stores your entry privately so you can edit it before submitting.<br />
-              <b>Submit Logbook</b> — sends the entry to your workplace supervisor for review. Cannot be edited after submission.
+              <label className="flabel">Challenges Encountered &amp; Mitigations</label>
+              <textarea name="challenges" className="ftextarea" rows="3" placeholder="Describe any technical limitations, merge blocks, or configuration bottlenecks..."
+                value={form.challenges} onChange={handleChange} disabled={submitting} />
             </div>
 
             <div className="btn-row">
               <button className="btn btn-ghost" onClick={() => submitLog('draft')} disabled={submitting}>
-                {submitting ? '…' : '💾 Save as Draft'}
+                {submitting ? 'Saving...' : 'Save as Draft'}
               </button>
               <button className="btn btn-primary" onClick={() => submitLog('submitted')} disabled={submitting}>
-                {submitting ? 'Submitting…' : 'Submit Logbook →'}
+                {submitting ? 'Processing...' : 'Submit Logbook Entry'}
               </button>
             </div>
           </div>
         )}
 
-        {/* ══ HISTORY ══════════════════════════════════════════════════════════ */}
+        {/* ══ LOG HISTORY LIST ════════════════════════════════════════════════ */}
         {tab === 'history' && (
           <div className="panel">
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
-              <div>
-                <div className="panel-title">All Weekly Log Entries</div>
-                <div style={{ fontSize: 12.5, color: '#64748B', marginTop: 3 }}>
-                  {dash.recentLogs.length > 0
-                    ? `${dash.recentLogs.length} log${dash.recentLogs.length !== 1 ? 's' : ''} on record`
-                    : 'No entries yet'}
-                </div>
-              </div>
-              <button className="btn btn-primary" style={{ fontSize: 12, padding: '7px 14px' }}
-                onClick={() => setTab('logbook')}>+ New Log</button>
-            </div>
-
-            {dash.recentLogs.length > 0 && (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
-                {['draft','submitted','reviewed','approved'].map(s => (
-                  <span key={s} className={`status-pill s-${s}`}>{s}</span>
-                ))}
-              </div>
+            <div className="panel-title">Your Journal Submissions</div>
+            <div className="panel-sub" style={{ marginBottom: 16 }}>Complete log history tracking for your evaluation profile.</div>
 
             {dash.recentLogs.length > 0 ? (
               <div className="log-list">
-                {dash.recentLogs.map((log, i) => (
-                  <div className="log-item" key={log.id ?? i}>
-                    <div className="log-week">W<br />{log.week_number ?? i + 1}</div>
-                    <div className="log-info">
-                      <div className="log-title">
-                        {log.activities?.slice(0, 80)}{log.activities?.length > 80 ? '…' : ''}
+                {dash.recentLogs.map((log, index) => (
+                  <div key={log.id || index} className="log-item" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: 12, padding: 20 }}>
+                    <div style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div className="log-week" style={{ height: 34, width: 34 }}>W{log.week_number}</div>
+                        <div>
+                          <div style={{ fontSize: '12px', color: '#64748B' }}>
+                            {fmtDate(log.week_start_date)} – {fmtDate(log.week_end_date)}
+                          </div>
+                        </div>
                       </div>
-                      <div className="log-date">
-                        {fmtDate(log.week_start_date)}
-                        {log.challenges && <span style={{ marginLeft: 8, color: '#94A3B8' }}>· Has challenges note</span>}
-                      </div>
+                      <span className={`status-pill ${
+                        log.status === 'approved' ? 's-approved' : 
+                        log.status === 'submitted' ? 's-submitted' : 's-draft'
+                      }`}>
+                        {log.status}
+                      </span>
                     </div>
-                    <span className={`status-pill s-${log.status?.toLowerCase()}`}>{log.status}</span>
+
+                    <div style={{ width: '100%' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Tasks &amp; Actions</div>
+                      <p style={{ fontSize: '13.5px', color: '#334155', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{log.activities}</p>
+                    </div>
+
+                    {log.challenges && (
+                      <div style={{ width: '100%', borderTop: '1px dashed #E2E8F0', paddingTop: 10 }}>
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Blockers &amp; Mitigations</div>
+                        <p style={{ fontSize: '13px', color: '#64748B', whiteSpace: 'pre-wrap' }}>{log.challenges}</p>
+                      </div>
+                    )}
+
+                    {log.score !== undefined && log.score !== null && (
+                      <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #F1F5F9', paddingTop: 10 }}>
+                        <div className="p-score-badge">
+                          <span className="p-score-label">Evaluation Mark:</span>
+                          <span className="p-score-val">{log.score}%</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             ) : (
               <div className="empty">
-                <div className="empty-icon">📭</div>
-                <h4>No logs submitted yet</h4>
-                <p>Your weekly log entries will appear here<br />once you submit them through the logbook.</p>
-                <button className="cta-btn" onClick={() => setTab('logbook')}>✏️ Submit your first log →</button>
+                <div className="empty-icon">📋</div>
+                <h4>No Logbook History</h4>
+                <p>You haven't added or submitted any logs to your system dashboard records yet.</p>
+                <button className="cta-btn" onClick={() => setTab('logbook')}>Draft your first log</button>
               </div>
             )}
           </div>
         )}
 
       </main>
-    </div></>
-  );
+    </div>
+  </>);
 }
