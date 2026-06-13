@@ -2,11 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser, InternshipPlacement, WeeklyLog, EvaluationCriteria, Evaluation, LogStatusHistory
 
-# --- 1. Basic Model Registration ---
 admin.site.register(LogStatusHistory)
 admin.site.register(EvaluationCriteria)
 
-# --- 2. Fixed Custom User Admin ---
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
     list_display = ("username", "email", "role", "is_staff", "is_superuser")
@@ -22,9 +20,7 @@ class CustomUserAdmin(UserAdmin):
 
 admin.site.register(CustomUser, CustomUserAdmin)
 
-# --- 3. Internship Placement Admin ---
 class InternshipPlacementAdmin(admin.ModelAdmin):
-    # Added scoring fields for Week 9 & 10 visibility
     list_display = ("organization_name", "position", "location", "duration", "total_score", "final_grade")
     search_fields = ['student__username', 'organization_name', 'position']
     list_filter = ("location", "final_grade")
@@ -45,7 +41,6 @@ class InternshipPlacementAdmin(admin.ModelAdmin):
 
 admin.site.register(InternshipPlacement, InternshipPlacementAdmin)
 
-# --- 4. Weekly Log Admin ---
 class WeeklyLogAdmin(admin.ModelAdmin):
     list_display = ('get_student_name', 'week_number', 'status', 'created_at')
     list_filter = ('status', 'week_number')
@@ -57,7 +52,6 @@ class WeeklyLogAdmin(admin.ModelAdmin):
 
 admin.site.register(WeeklyLog, WeeklyLogAdmin)
 
-# --- 5. Evaluation Admin ---
 class EvaluationAdmin(admin.ModelAdmin):
     list_display = (
         'get_student', 

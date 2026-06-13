@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-// ─── CSS ─────────────────────────────────────────────────────────────────────
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -183,7 +182,6 @@ const CSS = `
   }
 `;
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 const API = 'http://127.0.0.1:8000/api';
 
 const authHeaders = () => {
@@ -199,7 +197,7 @@ const initials = (name = '') =>
 const fmtDate = (iso) =>
   iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
-const val = (v) => v || null; // returns null if empty so we can show "Not provided"
+const val = (v) => v || null; 
 
 const NAV = [
   { id: 'overview',   icon: '🏠', label: 'Overview' },
@@ -210,13 +208,11 @@ const NAV = [
 
 const EMPTY_FORM = { weekNumber: '', weekStartDate: '', weekEndDate: '', activities: '', challenges: '' };
 
-// ─── Grade badge ─────────────────────────────────────────────────────────────
 function GradeBadge({ grade }) {
   if (!grade) return null;
   return <span className={`p-grade-badge grade-${grade}`}>{grade}</span>;
 }
 
-// ─── Placement field row helper ───────────────────────────────────────────────
 function PField({ label, value }) {
   return (
     <div className="p-field">
@@ -226,7 +222,6 @@ function PField({ label, value }) {
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
 export default function StudentDashboard() {
   const [tab,        setTab]        = useState('overview');
   const [loading,    setLoading]    = useState(true);
@@ -236,13 +231,12 @@ export default function StudentDashboard() {
 
   const [dash, setDash] = useState({
     studentName: 'Student', studentId: '',
-    placement: null,   // InternshipPlacement object or null
+    placement: null,   
     metrics:   { totalWeeksSubmitted: 0, pendingWeeks: 0, approvedWeeks: 0, totalWeeks: 12 },
     weeklyPerformance: [],
     recentLogs: []
   });
 
-  // ── Fetch ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     const token = localStorage.getItem('token') || localStorage.getItem('access');
     if (!token) { window.location.href = '/login'; return; }
@@ -264,14 +258,12 @@ export default function StudentDashboard() {
 
         const mData = mRes.ok ? await mRes.json() : null;
         const lData = lRes.ok ? await lRes.json() : null;
-        // pRes may 404 if student has no placement yet — that's fine
         const pData = pRes.ok ? await pRes.json() : null;
 
         setDash(prev => ({
           ...prev,
           studentName:       user?.name || user?.username || mData?.student_name || 'Student',
           studentId:         user?.student_number || mData?.student_number || '',
-          // Prefer the dedicated placement endpoint; fall back to dashboard-stats
           placement:         pData ?? mData?.placement ?? null,
           metrics:           mData?.metrics           ?? prev.metrics,
           weeklyPerformance: mData?.weekly_performance ?? [],
@@ -285,7 +277,6 @@ export default function StudentDashboard() {
     })();
   }, []);
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
   const flash = (type, text) => {
     setAlert({ type, text });
     setTimeout(() => setAlert({ type: '', text: '' }), 6000);
@@ -296,7 +287,6 @@ export default function StudentDashboard() {
     setForm(prev => ({ ...prev, [name]: value }));
   };
 
-  // ── Submit log ─────────────────────────────────────────────────────────────
   const submitLog = async (targetStatus) => {
     const { weekNumber, weekStartDate, weekEndDate, activities, challenges } = form;
     if (!weekNumber)                    { flash('error', 'Please enter the week number.'); return; }
@@ -315,7 +305,7 @@ export default function StudentDashboard() {
           week_end_date:   weekEndDate,
           activities:      activities.trim(),
           challenges:      challenges.trim(),
-          status:          targetStatus,   // already lowercase: 'draft' | 'submitted'
+          status:          targetStatus, 
         }),
       });
 
@@ -357,7 +347,6 @@ export default function StudentDashboard() {
     }
   };
 
-  // ── Derived values ─────────────────────────────────────────────────────────
   const total     = dash.metrics.totalWeeks || 12;
   const submitted = dash.metrics.totalWeeksSubmitted;
   const pct       = Math.round((submitted / total) * 100);
@@ -366,7 +355,6 @@ export default function StudentDashboard() {
     ? Math.round(dash.weeklyPerformance.reduce((s, w) => s + (w.score || 0), 0) / dash.weeklyPerformance.length)
     : null;
 
-  // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) return (
     <>
       <style>{CSS}</style>
@@ -374,13 +362,11 @@ export default function StudentDashboard() {
     </>
   );
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
       <style>{CSS}</style>
       <div className="shell">
-
-      {/* ══ SIDEBAR ══════════════════════════════════════════════════════════ */}
+      {}
       <aside className="sidebar">
         <div className="sb-brand">
           <div className="sb-pill">ILES · PORTAL</div>
