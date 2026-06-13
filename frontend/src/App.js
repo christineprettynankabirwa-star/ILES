@@ -1,7 +1,5 @@
-import React from 'react';
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Signup from './pages/Signup'; 
 import AboutUs from './pages/AboutUs';
@@ -11,17 +9,12 @@ import StudentDashboard from './components/StudentDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import AcademicSupervisorDashboard from './components/AcademicSupervisorDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
-
-
+import LandingSite from './pages/LandingSite';
 
 function App() {
   const [token, setToken] = useState(() => {
     const savedToken = localStorage.getItem('token');
     return (savedToken && savedToken !== "undefined" && savedToken !== "null") ? savedToken : null;
-  });
-
-  const [role, setRole] = useState(() => {
-    return localStorage.getItem('userRole') || 'student';
   });
 
   useEffect(() => {
@@ -49,7 +42,6 @@ function App() {
   };
 
   return (
-
     <Router>
       <div className="App">
         {token && (
@@ -133,11 +125,7 @@ function App() {
         </div>
       </div>
     </Router>
-
   );
-
 }
-
-
 
 export default App;
