@@ -1,29 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, AreaChart, Area
-} from 'recharts';
-
-const C = {
-  ink:         '#0F172A',
-  inkMid:      '#334155',
-  inkLight:    '#64748B',
-  border:      '#E2E8F0',
-  surface:     '#FFFFFF',
-  bg:          '#F8FAFC',
-  accent:      '#6366F1',
-  accentSoft:  '#EEF2FF',
-  accentDark:  '#4338CA',
-  success:     '#059669',
-  successSoft: '#ECFDF5',
-  warn:        '#D97706',
-  warnSoft:    '#FFFBEB',
-  danger:      '#DC2626',
-  dangerSoft:  '#FEF2F2',
-  purple:      '#7C3AED',
-  purpleSoft:  '#F5F3FF',
-};
-
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // ─── CSS ─────────────────────────────────────────────────────────────────────
@@ -710,19 +685,6 @@ export default function StudentDashboard() {
                     if you believe this is an error.
                   </p>
                 </div>
-                <button className="btn btn-ghost" style={{ fontSize: 12, padding: '6px 14px' }} onClick={() => setTab('history')}>View all →</button>
-              </div>
-              <div className="log-list">
-                {dash.recentLogs.slice(0, 4).map((log, i) => (
-                  <div className="log-item" key={log.id ?? i}>
-                    <div className="log-week">W<br />{log.week_number ?? i + 1}</div>
-                    <div className="log-info">
-                      <div className="log-title">{log.activities?.slice(0, 72)}{log.activities?.length > 72 ? '…' : ''}</div>
-                      <div className="log-date">{fmtDate(log.week_start_date)} – {fmtDate(log.week_end_date)}</div>
-                    </div>
-                    <span className={`status-pill s-${log.status}`}>{log.status}</span>
-                  </div>
-                ))}
               </div>
             )}
           </div>
