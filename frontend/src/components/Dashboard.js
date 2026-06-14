@@ -1,119 +1,157 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, 
-  Tooltip, ResponsiveContainer, Cell 
-} from 'recharts';
-import { useNavigate } from 'react-router-dom';
-import api from '../api/axiosConfig';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
-const Dashboard = () => {
-  const [stats, setStats] = useState({
-    student_progress: [],
-    pending_reviews_count: 0,
-    admin_performance: {}
+export default function Register() {
+  const [form, setForm] = useState({
+    username: '', email: '', first_name: '', last_name: '',
+    role: 'student', department: '', student_number: '',
+    staff_number: '', phone_number: '', password: '', password2: '',
   });
+  const [departments, setDepartments] = useState([]);
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
-  const hasRedirected = useRef(false);
- 
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token && !hasRedirected.current) {
-      hasRedirected.current = true;
-      localStorage.removeItem('token');
-      localStorage.removeItem('refresh_token');
-      navigate('/login');
-      return;
+    api.get('/departments/').then(r => setDepartments(r.data)).catch(() => {});
+  }, []);
+
+  const handleChange = e => {
+    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
+    setErrors(prev => ({ ...prev, [e.target.name]: '' }));
+  };
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    setErrors({});
+    setLoading(true);
+    try {
+      const payload = { ...form };
+      if (!payload.department) delete payload.department;
+      if (!payload.student_number) delete payload.student_number;
+      if (!payload.staff_number) delete payload.staff_number;
+      await register(payload);
+      navigate('/login', { state: { registered: true } });
+    } catch (err) {
+      if (err.response?.data) setErrors(err.response.data);
+      else setErrors({ general: 'Registration failed. Please try again.' });
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const fetchStats = async() => {
-      try {
-        const response = await api.get('dashboard-stats/');
-        setStats(response.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, [navigate]);
-
-  if (loading) return <div>Loading dashboard...</div>
+  const isStudent = form.role === 'student';
+  const isStaff = ['work_supervisor', 'acad_supervisor', 'admin'].includes(form.role);
 
   return (
-    <div style={{ padding: '30px', backgroundColor: '#f0f2f5', borderRadius: '12px', width: '100%', minHeight: '400px' }}>
-      <h2 style={{ color: '#1a3353', marginBottom: '25px', fontWeight: '700' }}>System Overview</h2>
+    <div className="auth-page">
+      <div className="auth-card" style={{ maxWidth: 520 }}>
+        <div className="auth-brand">
+          <div className="auth-brand-icon">I</div>
+          <span style={{ fontWeight: 700, fontSize: 17 }}>ILES Portal</span>
+        </div>
+        <h1>Create account</h1>
+        <p className="subtitle">Register to access the internship system</p>
 
-      <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
-        <div style={cardStyle('#fff', '#e74c3c')}>
-          <p style={labelStyle}>Pending Reviews</p>
-          <h3 style={valueStyle}>{stats.pending_reviews_count}</h3>
-        </div>
-        
-        <div style={cardStyle('#fff', '#2ecc71')}>
-          <p style={labelStyle}>Average Performance</p>
-          <h3 style={valueStyle}>
-            {stats.admin_performance?.avg_score 
-              ? `${stats.admin_performance.avg_score.toFixed(1)}%` 
-              : "0.0%"}
-          </h3>
-        </div>
+        {errors.general && <div className="alert alert-error">{errors.general}</div>}
 
-        <div style={cardStyle('#fff', '#3498db')}>
-          <p style={labelStyle}>Active Students</p>
-          <h3 style={valueStyle}>{stats.student_progress.length}</h3>
-        </div>
-      </div>
+        <form onSubmit={handleSubmit}>
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">First name <span className="req">*</span></label>
+              <input name="first_name" className="form-control" value={form.first_name} onChange={handleChange} required />
+              {errors.first_name && <div className="form-error">{errors.first_name}</div>}
+            </div>
+            <div className="form-group">
+              <label className="form-label">Last name <span className="req">*</span></label>
+              <input name="last_name" className="form-control" value={form.last_name} onChange={handleChange} required />
+              {errors.last_name && <div className="form-error">{errors.last_name}</div>}
+            </div>
+          </div>
 
-      <div style={{ 
-        backgroundColor: '#fff', 
-        padding: '25px', 
-        borderRadius: '15px', 
-        boxShadow: '0 10px 25px rgba(0,0,0,0.05)' 
-      }}>
-        <h4 style={{ margin: '0 0 20px 0', color: '#4a5568' }}>Weekly Log Submissions</h4>
-        <div style={{ width: '100%', height: 400 }}>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={stats.student_progress}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#edf2f7" />
-              <XAxis 
-                dataKey="student__username" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fill: '#718096', fontSize: 12 }} 
-              />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#718096' }} />
-              <Tooltip 
-                cursor={{ fill: '#f7fafc' }}
-                contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-              />
-              <Bar dataKey="logs_count" radius={[6, 6, 0, 0]} barSize={50}>
-                {stats.student_progress.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+          <div className="form-group">
+            <label className="form-label">Username <span className="req">*</span></label>
+            <input name="username" className="form-control" value={form.username} onChange={handleChange} required />
+            {errors.username && <div className="form-error">{errors.username}</div>}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input type="email" name="email" className="form-control" value={form.email} onChange={handleChange} />
+            {errors.email && <div className="form-error">{errors.email}</div>}
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Role <span className="req">*</span></label>
+              <select name="role" className="form-control" value={form.role} onChange={handleChange}>
+                <option value="student">Student Intern</option>
+                <option value="work_supervisor">Workplace Supervisor</option>
+                <option value="acad_supervisor">Academic Supervisor</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Department</label>
+              <select name="department" className="form-control" value={form.department} onChange={handleChange}>
+                <option value="">— Select —</option>
+                {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {isStudent && (
+            <div className="form-group">
+              <label className="form-label">Student number</label>
+              <input name="student_number" className="form-control" value={form.student_number} onChange={handleChange} />
+              {errors.student_number && <div className="form-error">{errors.student_number}</div>}
+            </div>
+          )}
+
+          {isStaff && (
+            <div className="form-group">
+              <label className="form-label">Staff number</label>
+              <input name="staff_number" className="form-control" value={form.staff_number} onChange={handleChange} />
+              {errors.staff_number && <div className="form-error">{errors.staff_number}</div>}
+            </div>
+          )}
+
+          <div className="form-group">
+            <label className="form-label">Phone number</label>
+            <input name="phone_number" className="form-control" value={form.phone_number} onChange={handleChange} />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Password <span className="req">*</span></label>
+              <input type="password" name="password" className="form-control" value={form.password} onChange={handleChange} required />
+              {errors.password && <div className="form-error">{errors.password}</div>}
+            </div>
+            <div className="form-group">
+              <label className="form-label">Confirm password <span className="req">*</span></label>
+              <input type="password" name="password2" className="form-control" value={form.password2} onChange={handleChange} required />
+              {errors.password2 && <div className="form-error">{errors.password2}</div>}
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            style={{ width: '100%', justifyContent: 'center', padding: '11px' }}
+            disabled={loading}
+          >
+            {loading ? 'Creating account…' : 'Create account'}
+          </button>
+        </form>
+
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13.5, color: 'var(--text-muted)' }}>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 500 }}>Sign in</Link>
+        </p>
       </div>
     </div>
   );
-};
-
-const cardStyle = (bg, accent) => ({
-  flex: 1,
-  padding: '25px',
-  backgroundColor: bg,
-  borderRadius: '15px',
-  borderTop: `5px solid ${accent}`,
-  boxShadow: '0 4px 6px rgba(0,0,0,0.02)',
-  transition: 'transform 0.2s'
-});
-
-const labelStyle = { margin: 0, fontSize: '13px', color: '#718096', textTransform: 'uppercase', letterSpacing: '0.5px' };
-const valueStyle = { margin: '10px 0 0 0', fontSize: '28px', color: '#2d3748', fontWeight: 'bold' };
-
-export default Dashboard;
+}

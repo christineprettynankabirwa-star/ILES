@@ -3,54 +3,63 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
+
+// Public pages
+import Home from './pages/Home';
 import Login from './pages/Login';
-import Signup from './pages/Signup';
+import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
+
+// Protected pages
+import Dashboard from './pages/Dashboard';
 import Placements from './pages/Placements';
 import WeeklyLogs from './pages/WeeklyLogs';
 import Evaluations from './pages/Evaluations';
 import Users from './pages/Users';
 import Departments from './pages/Departments';
 import Criteria from './pages/Criteria';
-import Profiles from './pages/Profiles';
-import AboutUs from './pages/AboutUs';
-import LandingPage from './pages/LandingPage';
+import Profile from './pages/Profile';
+
+import './index.css';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
+    <AuthProvider>
+      <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/about" element={<AboutUs />} />
 
+          {/* ── Public routes ── */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+
+          {/* ── Protected routes (all roles) ── */}
           <Route
-            path="/app"
             element={
               <ProtectedRoute>
                 <Layout />
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/app/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="placements" element={<Placements />} />
-            <Route path="weekly-logs" element={<WeeklyLogs />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/placements" element={<Placements />} />
+            <Route path="/weekly-logs" element={<WeeklyLogs />} />
+            <Route path="/profile" element={<Profile />} />
+
+            {/* Students + Acad Supervisor + Admin */}
             <Route
-              path="evaluations"
+              path="/evaluations"
               element={
                 <ProtectedRoute roles={['student', 'acad_supervisor', 'admin']}>
                   <Evaluations />
                 </ProtectedRoute>
               }
             />
-            <Route path="profile" element={<Profiles />} />
+
+            {/* Admin only */}
             <Route
-              path="users"
+              path="/users"
               element={
                 <ProtectedRoute roles={['admin']}>
                   <Users />
@@ -58,7 +67,7 @@ export default function App() {
               }
             />
             <Route
-              path="departments"
+              path="/departments"
               element={
                 <ProtectedRoute roles={['admin']}>
                   <Departments />
@@ -66,7 +75,7 @@ export default function App() {
               }
             />
             <Route
-              path="criteria"
+              path="/criteria"
               element={
                 <ProtectedRoute roles={['admin']}>
                   <Criteria />
@@ -75,9 +84,11 @@ export default function App() {
             />
           </Route>
 
+          {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to="/" replace />} />
+
         </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
