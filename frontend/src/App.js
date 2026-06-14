@@ -1,6 +1,12 @@
 import React from "react";
-import InternshipList from "./pages/InternshipList";
-import IssueForm from './pages/IssueForm';
+import { BrowserRouter, Routes, Route, Navigate  } from "react-router-dom";
+
+import { AuthProvider } from "./context/AuthContext";
+import { ToastProvider } from "./context/ToastContext";
+import { DepartmentsProvider } from "./context/DepartmentsContext";
+
+import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
 
 import Home from './pages/LandingPage';
 import Login from './pages/Login';
@@ -17,7 +23,6 @@ import Criteria from './pages/Criteria';
 import Profile from './pages/Profiles';
 
 import './index.css';
-import './toast.css';
 
 export default function App() {
   return (
