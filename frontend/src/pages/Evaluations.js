@@ -40,8 +40,11 @@ export default function Evaluations() {
   const isWorkSup  = role === 'work_supervisor';
   const isStudent  = role === 'student';
 
+<<<<<<< HEAD
   const [supervisors, setSupervisors] = useState([]);
 
+=======
+>>>>>>> deafd83 (Save frontend changes before switching branches)
   // Only academic supervisors and admins can create/edit/delete evaluations
   const canEvaluate = isAcadSup || isAdmin;
   // Everyone can view
@@ -81,7 +84,10 @@ export default function Evaluations() {
     setSelected(ev);
     setForm({
       placement:              ev.placement,
+<<<<<<< HEAD
       academic_supervisor:    ev.academic_supervisor || '',
+=======
+>>>>>>> deafd83 (Save frontend changes before switching branches)
       attendance_punctuality: ev.attendance_punctuality,
       technical_competence:   ev.technical_competence,
       quality_of_work:        ev.quality_of_work,
