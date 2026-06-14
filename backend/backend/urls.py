@@ -1,15 +1,13 @@
 from django.contrib import admin
-from django.urls import path, include 
-from rest_framework.authtoken.views import obtain_auth_token
-from core.views import user_profile
-from django.http import HttpResponse 
-from django.shortcuts import redirect 
+from django.urls import path, include
+from django.http import JsonResponse
+
+def api_root(request):
+    return JsonResponse({"message": "Welcome to the ILES API. Use /api/ endpoints."})
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('core.urls')),
-    path('api-token-auth/', obtain_auth_token),
-    path('api/user/profile', user_profile),
-    path('', lambda request: HttpResponse("Welcome to the API. Use /api/ endpoints.")),
-    path('', lambda request: redirect('/api/dashboard-stats')),
+    path('', api_root),
 ]

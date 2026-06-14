@@ -11,12 +11,12 @@ function Signup() {
         role: 'student'
     });
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(''); 
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
-        setError(''); 
+        setError('');
     };
 
     const handleSubmit = async (e) => {
@@ -30,36 +30,64 @@ function Signup() {
 
         setLoading(true);
         try {
+            // FIX: signup_view uses UserRegistrationSerializer, which requires
+            // "password2" — NOT "confirmPassword". This was the cause of the 400.
             const response = await axios.post('http://127.0.0.1:8000/api/signup/', {
                 username: formData.username,
                 email: formData.email,
                 password: formData.password,
-                confirmPassword: formData.confirmPassword,
+                password2: formData.confirmPassword,
                 role: formData.role
             });
 
-            if (response.data.access) {
-                const token = response.data.access;
-                const userRole = response.data.role || 'student';
+            const { access, refresh, role } = response.data;
 
-                localStorage.setItem('token', token);
-                localStorage.setItem('refresh_token', response.data.refresh);
+            if (access) {
+                // signup_view returns "role" at the top level
+                const userRole = role || formData.role || 'student';
+
+                localStorage.setItem('token', access);
+                localStorage.setItem('refresh_token', refresh);
                 localStorage.setItem('userRole', userRole);
 
                 if (userRole === 'admin') {
                     navigate('/admin-dashboard');
-                } else if (userRole === 'supervisor' || userRole === 'academic_supervisor' || userRole === 'acad_supervisor') {
+                } else if (userRole === 'acad_supervisor') {
+                    navigate('/academic-supervisor-dashboard');
+                } else if (userRole === 'work_supervisor') {
                     navigate('/academic-supervisor-dashboard');
                 } else {
                     navigate('/student-dashboard');
                 }
             } else {
-                alert(`Account created successfully! Please log in.`);
                 navigate('/login');
             }
 
-        } catch (error) {
-            const message = error.response?.data?.error || error.response?.data?.detail || "Signup failed. Please try again.";
+        } catch (err) {
+            const data = err.response?.data;
+
+            // FIX: serializer.errors returns field-level dicts, e.g.
+            // {"password2": ["This field is required."]} or
+            // {"username": ["A user with that username already exists."]}
+            // Walk through possible shapes to find a readable message.
+            let message = "Signup failed. Please try again.";
+            if (data) {
+                if (typeof data === 'string') {
+                    message = data;
+                } else if (data.error) {
+                    message = data.error;
+                } else if (data.detail) {
+                    message = data.detail;
+                } else {
+                    const firstKey = Object.keys(data)[0];
+                    const firstVal = data[firstKey];
+                    if (Array.isArray(firstVal)) {
+                        message = `${firstKey}: ${firstVal[0]}`;
+                    } else if (typeof firstVal === 'string') {
+                        message = `${firstKey}: ${firstVal}`;
+                    }
+                }
+            }
             setError(message);
         } finally {
             setLoading(false);
@@ -111,9 +139,9 @@ function Signup() {
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
                     <input name="username" type="text" placeholder="Username"
-                        style={inputStyle} onChange={handleChange} required />
+                        style={inputStyle} value={formData.username} onChange={handleChange} required />
                     <input name="email" type="email" placeholder="Email Address"
-                        style={inputStyle} onChange={handleChange} required />
+                        style={inputStyle} value={formData.email} onChange={handleChange} required />
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                         <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#34495e', marginLeft: '2px' }}>
@@ -127,9 +155,9 @@ function Signup() {
                     </div>
 
                     <input name="password" type="password" placeholder="Password"
-                        style={inputStyle} onChange={handleChange} required />
+                        style={inputStyle} value={formData.password} onChange={handleChange} required />
                     <input name="confirmPassword" type="password" placeholder="Confirm Password"
-                        style={inputStyle} onChange={handleChange} required />
+                        style={inputStyle} value={formData.confirmPassword} onChange={handleChange} required />
 
                     <button type="submit" disabled={loading} style={buttonStyle}>
                         {loading ? 'Creating Account...' : 'Register Account'}
