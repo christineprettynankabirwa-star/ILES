@@ -1,103 +1,41 @@
-from django.shortcuts import render
-from rest_framework.generics import ListCreateAPIView
-from .models import CustomUser, Department, WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement
-from .serializers import UserRegistrationSerializer, CustomTokenObtainPairSerializer, CustomUserSerializer, DepartmentSerializer, WeeklyLogSerializer, EvaluationCriteriaSerializer, EvaluationSerializer, InternshipPlacementSerializer
-from rest_framework import viewsets, generics, status
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from .permissions import IsStudentUser
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from django.contrib.auth import authenticate, get_user_model
-from rest_framework_simplejwt.views import TokenObtainPairView
-from django.db.models import Count, Avg
-from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
+from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 from django.conf import settings
+from django.db.models import Count, Avg, Q
+from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from datetime import timedelta
+from rest_framework import viewsets, generics, status
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.generics import ListCreateAPIView
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from .models import (
+    CustomUser, Department, WeeklyLog,
+    EvaluationCriteria, Evaluation, InternshipPlacement,
+)
+from .serializers import (
+    UserRegistrationSerializer, CustomTokenObtainPairSerializer,
+    CustomUserSerializer, DepartmentSerializer, WeeklyLogSerializer,
+    EvaluationCriteriaSerializer, EvaluationSerializer,
+    InternshipPlacementSerializer,
+)
+from .permissions import (
+    IsStudentUser, IsWorkplaceSupervisor,
+    IsAcademicSupervisor, IsAdminUser, IsAdminOrReadOnly,
+)
 
 User = get_user_model()
 
-
+# AUTH
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
-
-
-class CustomUserViewSet(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all()
-    serializer_class = CustomUserSerializer
-    permission_classes = [AllowAny]
-
-
-class DepartmentListCreateAPIView(ListCreateAPIView):
-    queryset = Department.objects.all()
-    serializer_class = DepartmentSerializer
-
-
-class WeeklyLogListCreateAPIView(ListCreateAPIView):
-    queryset = WeeklyLog.objects.all()
-    serializer_class = WeeklyLogSerializer
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def signup_view(request):
-    data = request.data
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-    confirm_password = data.get('confirmPassword')
-    role_value = data.get('role')
-
-    if not username or not password:
-        return Response({"error": "Username and password required"}, status=status.HTTP_400_BAD_REQUEST)
-
-    if password != confirm_password:
-        return Response({"error": "Passwords do not match"}, status=status.HTTP_400_BAD_REQUEST)
-
-    valid_roles = [choice[0] for choice in User.ROLE_CHOICES]
-    if role_value not in valid_roles:
-        return Response({"error": "Invalid role selected"}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        if User.objects.filter(username=username).exists():
-            return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
-
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
-            role=role_value
-        )
-
-        token, _ = Token.objects.get_or_create(user=user)
-
-        return Response({
-            "message": "Registration successful",
-            "token": token.key,
-            "role": role_value
-        }, status=status.HTTP_201_CREATED)
-
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_profile(request):
-    user = request.user
-    serializer = CustomUserSerializer(user)
-    return Response({
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'role': user.role,
-        'first_name': user.first_name,
-        'last_name': user.last_name,
-        'department': user.department.name if hasattr(user, 'department') and user.department else None,
-    })
 
 
 class RegisterView(generics.CreateAPIView):
@@ -108,95 +46,182 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            return Response({
-                "user": {
-                    'id': user.id,
-                    'username': user.username,
-                    'email': user.email,
-                    'role': user.role
+            return Response(
+                {
+                    "user": {
+                        "id": user.id,
+                        "username": user.username,
+                        "email": user.email,
+                        "role": user.role,
+                    },
+                    "message": "User registered successfully.",
                 },
-                "message": "User registered successfully."
-            }, status=status.HTTP_201_CREATED)
+                status=status.HTTP_201_CREATED,
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def signup_view(request):
+    serializer = UserRegistrationSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    user = serializer.save()
+    refresh = RefreshToken.for_user(user)
+    return Response(
+        {
+            "message": "Registration successful",
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "role": user.role,
+        },
+        status=status.HTTP_201_CREATED,
+    )
+
+
 class LogoutView(generics.GenericAPIView):
-    permission_classes = [AllowAny]
+    """Blacklist the refresh token on logout (Week 4)."""
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        refresh_token = request.data.get("refresh")
+        if not refresh_token:
+            return Response(
+                {"error": "Refresh token is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
-            refresh_token = request.data.get("refresh")
-            if refresh_token:
-                from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
-                from rest_framework_simplejwt.tokens import RefreshToken
-                token = RefreshToken(refresh_token)
-                token.blacklist()
+            token = RefreshToken(refresh_token)
+            token.blacklist()
             return Response({"message": "Logged out successfully."}, status=200)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
-
-
-class DashboardStatsView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        student_progress = InternshipPlacement.objects.annotate(
-            logs_count=Count('weekly_logs')
-        ).values('student__username', 'logs_count')
-
-        pending_reviews = Evaluation.objects.filter(
-            date_evaluated__isnull=True
-        ).count()
-
-        admin_stats = Evaluation.objects.aggregate(
-            avg_score=Avg('total_weighted_score'),
-            total_evals=Count('id')
-        )
-
-        return Response({
-            "student_progress": list(student_progress),
-            "pending_reviews_count": pending_reviews,
-            "admin_performance": admin_stats
-        })
-
 
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
         email = request.data.get('email')
-
         if not email:
-            return Response({'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST)
-
+            return Response(
+                {'error': 'Email is required.'}, status=status.HTTP_400_BAD_REQUEST
+            )
         try:
             user = User.objects.get(email=email)
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             reset_link = f"http://localhost:3000/reset-password/{uid}/{token}/"
-
             send_mail(
                 subject='ILES Password Reset Request',
-                message=f'Hi {user.username},\n\nClick the link below to reset your password:\n\n{reset_link}\n\nIf you did not request this, please ignore this email.',
+                message=(
+                    f'Hi {user.username},\n\n'
+                    f'Click the link below to reset your password:\n\n{reset_link}\n\n'
+                    f'If you did not request this, please ignore this email.'
+                ),
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[email],
                 fail_silently=False,
             )
         except User.DoesNotExist:
             pass
-
         return Response(
             {'message': 'If that email is registered, a reset link has been sent.'},
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
 
+# USER PROFILE
 
-class WeeklyLogViewSet(viewsets.ModelViewSet):
-    queryset = WeeklyLog.objects.all()
+@api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    user = request.user
+    if request.method == 'PATCH':
+        serializer = CustomUserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(CustomUserSerializer(user).data)
+
+# USER MANAGEMENT  (Week 4)
+
+class CustomUserViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        """Admins can write; others can only read their own data."""
+        if self.action in ('list', 'retrieve'):
+            return [IsAuthenticated()]
+        return [IsAdminUser()]
+
+# DEPARTMENT
+
+class DepartmentListCreateAPIView(ListCreateAPIView):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
+    permission_classes = [IsAdminOrReadOnly]
+
+# INTERNSHIP PLACEMENT 
+
+class InternshipPlacementViewSet(viewsets.ModelViewSet):
+    serializer_class = InternshipPlacementSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'student':
+            return InternshipPlacement.objects.filter(student=user)
+        if user.role == 'work_supervisor':
+            return InternshipPlacement.objects.filter(workplace_supervisor=user)
+        if user.role == 'acad_supervisor':
+            return InternshipPlacement.objects.filter(academic_supervisor=user)
+        return InternshipPlacement.objects.all()
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.role == 'student':
+            serializer.save(student=user)
+        else:
+            serializer.save()
+
+# WEEKLY LOG 
+
+class WeeklyLogListCreateAPIView(ListCreateAPIView):
+    """Simple list/create (kept for backward compat)."""
     serializer_class = WeeklyLogSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'student':
+            return WeeklyLog.objects.filter(student=user)
+        return WeeklyLog.objects.all()
+
+class WeeklyLogViewSet(viewsets.ModelViewSet):
+    serializer_class = WeeklyLogSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'student':
+            return WeeklyLog.objects.filter(student=user)
+        if user.role == 'work_supervisor':
+            return WeeklyLog.objects.filter(
+                placement__workplace_supervisor=user
+            )
+        if user.role == 'acad_supervisor':
+            return WeeklyLog.objects.filter(
+                placement__academic_supervisor=user
+            )
+        return WeeklyLog.objects.all()
+
     def perform_create(self, serializer):
+        if self.request.user.role != 'student':
+            raise serializers.ValidationError("Only students can create weekly logs.")
         instance = serializer.save(student=self.request.user)
         instance._changed_by = self.request.user
 
@@ -204,20 +229,120 @@ class WeeklyLogViewSet(viewsets.ModelViewSet):
         instance = serializer.save()
         instance._changed_by = self.request.user
 
+    @action(detail=True, methods=['patch'],
+            permission_classes=[IsWorkplaceSupervisor],
+            url_path='review')
+    def review(self, request, pk=None):
+        log = self.get_object()
+        if log.status != 'submitted':
+            return Response(
+                {"error": "Only submitted logs can be reviewed."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        comments = request.data.get('supervisor_comments', '')
+        log._changed_by = request.user
+        log.supervisor_comments = comments
+        log.reviewed_by = request.user
+        log.reviewed_at = timezone.now()
+        log.status = 'reviewed'
+        log.save()
+        return Response(WeeklyLogSerializer(log).data)
 
-class InternshipPlacementViewSet(viewsets.ModelViewSet):
-    queryset = InternshipPlacement.objects.all()
-    serializer_class = InternshipPlacementSerializer
-    permission_classes = [IsAuthenticated]
+    @action(detail=True, methods=['patch'],
+            permission_classes=[IsAcademicSupervisor],
+            url_path='approve')
+    def approve(self, request, pk=None):
+        log = self.get_object()
+        if log.status != 'reviewed':
+            return Response(
+                {"error": "Only reviewed logs can be approved."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        log._changed_by = request.user
+        log.status = 'approved'
+        log.save()
+        return Response(WeeklyLogSerializer(log).data)
 
+# EVALUATION
 
 class EvaluationCriteriaViewSet(viewsets.ModelViewSet):
     queryset = EvaluationCriteria.objects.all()
     serializer_class = EvaluationCriteriaSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class EvaluationViewSet(viewsets.ModelViewSet):
-    queryset = Evaluation.objects.all()
     serializer_class = EvaluationSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'acad_supervisor':
+            return Evaluation.objects.filter(academic_supervisor=user)
+        if user.role == 'student':
+            return Evaluation.objects.filter(placement__student=user)
+        return Evaluation.objects.all()
+
+    def perform_create(self, serializer):
+        if self.request.user.role != 'acad_supervisor':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only academic supervisors can create evaluations.")
+        serializer.save(academic_supervisor=self.request.user)
+
+# DASHBOARD 
+
+class DashboardStatsView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        date_range = request.query_params.get('range', '30d')
+        now = timezone.now()
+
+        range_map = {'7d': 7, '30d': 30, '90d': 90}
+        days = range_map.get(date_range)
+        since = now - timedelta(days=days) if days else None
+
+        placements = InternshipPlacement.objects.all()
+        if since:
+            placements = placements.filter(created_at__gte=since)
+
+        if user.role == 'student':
+            placements = placements.filter(student=user)
+        elif user.role == 'acad_supervisor':
+            placements = placements.filter(academic_supervisor=user)
+        elif user.role == 'work_supervisor':
+            placements = placements.filter(workplace_supervisor=user)
+
+        student_progress = list(
+            placements.annotate(logs_count=Count('weekly_logs'))
+            .values('student__username', 'student__id', 'logs_count', 'final_grade', 'total_score')
+        )
+
+        pending_reviews = WeeklyLog.objects.filter(status='submitted')
+        if user.role == 'work_supervisor':
+            pending_reviews = pending_reviews.filter(
+                placement__workplace_supervisor=user
+            )
+        pending_reviews_count = pending_reviews.count()
+
+        admin_stats = None
+        if user.role in ('admin',) or user.is_superuser:
+            admin_stats = Evaluation.objects.aggregate(
+                avg_score=Avg('total_weighted_score'),
+                total_evals=Count('id'),
+            )
+        
+            grade_dist = list(
+                InternshipPlacement.objects.values('final_grade')
+                .annotate(count=Count('id'))
+                .order_by('final_grade')
+            )
+            admin_stats['grade_distribution'] = grade_dist
+
+        return Response({
+            "student_progress": student_progress,
+            "pending_reviews_count": pending_reviews_count,
+            "admin_performance": admin_stats,
+        })

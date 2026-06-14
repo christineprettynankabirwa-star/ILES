@@ -1,100 +1,94 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
-import React, { useState, useEffect } from "react";
-import LandingSite from './pages/LandingSite';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import AboutUs from './pages/AboutUs';
-import ForgotPassword from './pages/ForgotPassword'; 
-import Dashboard from './components/Dashboard';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import './App.css';
-import StudentDashboard from './components/StudentDashboard';
+import Layout from './components/Layout';
 
-function App() {
-  const [token, setToken] = useState(() => localStorage.getItem('access_token'));
+// Public pages
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    window.location.href = "/login";
-  };
+// Protected pages
+import Dashboard from './pages/Dashboard';
+import Placements from './pages/Placements';
+import WeeklyLogs from './pages/WeeklyLogs';
+import Evaluations from './pages/Evaluations';
+import Users from './pages/Users';
+import Departments from './pages/Departments';
+import Criteria from './pages/Criteria';
+import Profile from './pages/Profile';
 
+import './index.css';
+
+export default function App() {
   return (
-    <Router>
-      <div className="App">
-        {token && (
-          <nav style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            padding: '15px 30px', 
-            background: '#2c3e50', 
-            color: 'white',
-            alignItems: 'center' 
-          }}>
-            <h2 style={{ margin: 0, fontSize: '1.2rem' }}>ILES Portal</h2>
-            <div style={{ display: 'flex', gap: '20px' }}>
-              <Link to="/dashboard" style={{ color: 'white', textDecoration: 'none' }}>Dashboard</Link>
-              <Link to="/about" style={{ color: 'white', textDecoration: 'none' }}>About Us</Link>
-              <button 
-                onClick={handleLogout} 
-                style={{ 
-                  background: '#e74c3c', 
-                  border: 'none', 
-                  color: 'white', 
-                  padding: '5px 10px', 
-                  borderRadius: '4px', 
-                  cursor: 'pointer' 
-                }}
-              >
-                Logout
-              </button>
-            </div>
-          </nav>
-        )}
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
 
-        <div style={{ padding: token ? "20px" : "0px" }}>
-          <Routes>
-            {/* Public landing page — no auth required */}
-            <Route path="/" element={<LandingSite />} />
+          {/* ── Public routes ── */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
-            {/* Protected dashboard */}
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <>
-                    <Dashboard />
-                    <hr />
-                  </>
-                </ProtectedRoute>
-              } 
-            />
+          {/* ── Protected routes (all roles) ── */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/placements" element={<Placements />} />
+            <Route path="/weekly-logs" element={<WeeklyLogs />} />
+            <Route path="/profile" element={<Profile />} />
 
-            {/* Public pages */}
-            <Route path="/about" element={<AboutUs />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-
-            {/* Auth routes — redirect to dashboard if already logged in */}
-            <Route path="/signup" element={!token ? <Signup /> : <Navigate to="/dashboard" />} />
-            <Route path="/login" element={!token ? <Login setToken={setToken} /> : <Navigate to="/dashboard" />} />
-
-            {/* Catch-all */}
-            <Route path="*" element={<Navigate to="/" />} />
-
-            {/* 2. Make sure it is registered and protected*/}
+            {/* Students + Acad Supervisor + Admin */}
             <Route
-              path="/student-dashboard"
+              path="/evaluations"
               element={
-                <ProtectedRoute allowedRoles={['Student']}>
-                  <StudentDashboard />
+                <ProtectedRoute roles={['student', 'acad_supervisor', 'admin']}>
+                  <Evaluations />
                 </ProtectedRoute>
               }
             />
-          </Routes>
-        </div>
-      </div>
-    </Router>
+
+            {/* Admin only */}
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <Users />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/departments"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <Departments />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/criteria"
+              element={
+                <ProtectedRoute roles={['admin']}>
+                  <Criteria />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
-
-export default App;
