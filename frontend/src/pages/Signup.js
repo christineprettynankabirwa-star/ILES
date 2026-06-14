@@ -47,9 +47,14 @@ export default function Register() {
   return (
     <div className="auth-page">
       <div className="auth-card" style={{ maxWidth: 520 }}>
-        <div className="auth-brand">
-          <div className="auth-brand-icon">I</div>
-          <span style={{ fontWeight: 700, fontSize: 17 }}>ILES Portal</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div className="auth-brand" style={{ margin: 0 }}>
+            <div className="auth-brand-icon">I</div>
+            <span style={{ fontWeight: 700, fontSize: 17 }}>ILES Portal</span>
+          </div>
+          <Link to="/" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+            ← Home
+          </Link>
         </div>
         <h1>Create account</h1>
         <p className="subtitle">Register to access the internship system</p>
