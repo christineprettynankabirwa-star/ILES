@@ -302,9 +302,20 @@ class EvaluationViewSet(viewsets.ModelViewSet):
         return Evaluation.objects.all()
 
     def perform_create(self, serializer):
-        if self.request.user.role != 'acad_supervisor':
-            raise PermissionDenied("Only academic supervisors can create evaluations.")
-        serializer.save(academic_supervisor=self.request.user)
+        user = self.request.user
+        if user.role == 'acad_supervisor':
+            serializer.save(academic_supervisor=user)
+        elif user.role == 'admin' or user.is_superuser:
+            academic_supervisor_id = self.request.data.get('academic_supervisor')
+            if not academic_supervisor_id:
+                raise PermissionDenied("Admins must assign an academic supervisor.")
+            try:
+                supervisor = User.objects.get(pk=academic_supervisor_id, role='acad_supervisor')
+            except User.DoesNotExist:
+                raise PermissionDenied("Invalid academic supervisor selected.")
+            serializer.save(academic_supervisor=supervisor)
+        else:
+            raise PermissionDenied("Only academic supervisors or admins can create evaluations.")
 
 
 # DASHBOARD

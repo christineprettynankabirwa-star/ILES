@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Spinner, Badge, EmptyState, Modal } from '../components/UI';
+import { Spinner, EmptyState, Modal } from '../components/UI';
 
 const emptyForm = {
   placement: '',
+  academic_supervisor: '',
   attendance_punctuality: '',
   technical_competence: '',
   quality_of_work: '',
@@ -15,10 +16,7 @@ function ScoreBar({ value, max = 100, color = 'var(--primary)' }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       <div className="progress-bar" style={{ flex: 1 }}>
-        <div
-          className="progress-bar-fill"
-          style={{ width: `${(value / max) * 100}%`, background: color }}
-        />
+        <div className="progress-bar-fill" style={{ width: `${(value / max) * 100}%`, background: color }} />
       </div>
       <span style={{ fontSize: 13, fontWeight: 600, minWidth: 32, color: 'var(--text)' }}>{value}</span>
     </div>
@@ -36,18 +34,25 @@ export default function Evaluations() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
-  const role = user?.role;
-  const isAcadSup = role === 'acad_supervisor';
-  const isAdmin = role === 'admin';
+  const role       = user?.role;
+  const isAcadSup  = role === 'acad_supervisor';
+  const isAdmin    = role === 'admin';
+  const isWorkSup  = role === 'work_supervisor';
+  const isStudent  = role === 'student';
 
-  // Which placements should appear in the "Student placement" dropdown?
-  // - Academic supervisors should only evaluate students they actually
-  //   supervise (placement.academic_supervisor === their own id).
-  // - Admins can evaluate any placement.
-  // - Either way, a placement that already has an evaluation shouldn't be
-  //   offered again for "create" (use Edit on the existing one instead).
+  const [supervisors, setSupervisors] = useState([]);
+
+  // Only academic supervisors and admins can create/edit/delete evaluations
+  const canEvaluate = isAcadSup || isAdmin;
+  // Everyone can view
+  const canView = true;
+
+  // Placements available for evaluation:
+  // acad supervisor → only approved placements assigned to them, not yet evaluated
+  // admin → all approved placements not yet evaluated
   const evaluatedPlacementIds = new Set(evals.map(e => e.placement));
   const placementOptions = placements.filter(p => {
+    if (!p.is_active) return false; // only approved placements can be evaluated
     if (isAcadSup && p.academic_supervisor !== user.id) return false;
     if (evaluatedPlacementIds.has(p.id)) return false;
     return true;
@@ -56,15 +61,17 @@ export default function Evaluations() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [evRes, plRes] = await Promise.all([
-        api.get('/evaluations/'),
-        api.get('/placements/'),
-      ]);
+      const requests = [api.get('/evaluations/'), api.get('/placements/')];
+      if (isAdmin) requests.push(api.get('/users/'));
+      const [evRes, plRes, usersRes] = await Promise.all(requests);
       setEvals(evRes.data);
       setPlacements(plRes.data);
+      if (isAdmin && usersRes) {
+        setSupervisors(usersRes.data.filter(u => u.role === 'acad_supervisor'));
+      }
     } catch {}
     setLoading(false);
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -73,11 +80,12 @@ export default function Evaluations() {
   const openEdit = ev => {
     setSelected(ev);
     setForm({
-      placement: ev.placement,
+      placement:              ev.placement,
+      academic_supervisor:    ev.academic_supervisor || '',
       attendance_punctuality: ev.attendance_punctuality,
-      technical_competence: ev.technical_competence,
-      quality_of_work: ev.quality_of_work,
-      supervisor_comments: ev.supervisor_comments || '',
+      technical_competence:   ev.technical_competence,
+      quality_of_work:        ev.quality_of_work,
+      supervisor_comments:    ev.supervisor_comments || '',
     });
     setErrors({});
     setModal('edit');
@@ -106,17 +114,18 @@ export default function Evaluations() {
     return 'F';
   };
 
-  const canEvaluate = isAcadSup || isAdmin;
-
   const handleSave = async () => {
-    if (!canEvaluate) return; // students/work supervisors can't create or edit evaluations
+    if (!canEvaluate) return;
     setSaving(true);
     setErrors({});
     try {
+      const payload = { ...form };
+      // Admin must supply academic_supervisor; acad_supervisor is set server-side
+      if (isAcadSup) delete payload.academic_supervisor;
       if (modal === 'create') {
-        await api.post('/evaluations/', form);
+        await api.post('/evaluations/', payload);
       } else {
-        await api.patch(`/evaluations/${selected.id}/`, form);
+        await api.patch(`/evaluations/${selected.id}/`, payload);
       }
       setModal(null);
       load();
@@ -141,32 +150,49 @@ export default function Evaluations() {
 
   if (loading) return <Spinner />;
 
+  const pageDescription = () => {
+    if (isAcadSup) return 'Evaluate student performance using the weighted scoring formula';
+    if (isWorkSup) return 'View student evaluation results — evaluations are submitted by academic supervisors';
+    if (isStudent) return 'View your evaluation results and final grade';
+    return 'Manage student evaluations';
+  };
+
+  const emptyDescription = () => {
+    if (isAcadSup) return 'No placements assigned to you are ready for evaluation yet, or all have been evaluated.';
+    if (isWorkSup) return 'No evaluations have been submitted for students under your supervision yet.';
+    if (isStudent) return 'Your evaluation will appear here once submitted by your academic supervisor.';
+    return 'No evaluations submitted yet.';
+  };
+
   return (
     <div>
       <div className="page-header">
         <div>
           <h1>Evaluations</h1>
-          <p>
-            {isAcadSup
-              ? 'Evaluate student performance using the weighted scoring formula'
-              : 'View your evaluation results and final grades'}
-          </p>
+          <p>{pageDescription()}</p>
         </div>
         {canEvaluate && (
           <button
             className="btn btn-primary"
             onClick={openCreate}
             disabled={placementOptions.length === 0}
-            title={placementOptions.length === 0 ? 'No placements available to evaluate' : undefined}
+            title={placementOptions.length === 0 ? 'No approved placements available to evaluate' : undefined}
           >
             + New evaluation
           </button>
         )}
       </div>
 
+      {/* Info banners */}
       {canEvaluate && (
         <div className="alert alert-info" style={{ marginBottom: 20 }}>
-          <strong>Scoring formula:</strong> Attendance & Punctuality (40%) + Technical Competence (30%) + Quality of Work (30%)
+          <strong>Scoring formula:</strong> Attendance & Punctuality (40%) + Technical Competence (30%) + Quality of Work (30%).
+          Only <strong>approved</strong> placements can be evaluated.
+        </div>
+      )}
+      {isWorkSup && (
+        <div className="alert alert-info" style={{ marginBottom: 20 }}>
+          You can view evaluations for students under your supervision. Evaluations are created by academic supervisors.
         </div>
       )}
 
@@ -175,12 +201,10 @@ export default function Evaluations() {
           <EmptyState
             icon="📊"
             title="No evaluations yet"
-            description={
-              isAcadSup
-                ? 'Create an evaluation for a student placement.'
-                : 'Your evaluation will appear here once submitted by your supervisor.'
-            }
-            action={canEvaluate && placementOptions.length > 0 && <button className="btn btn-primary" onClick={openCreate}>New evaluation</button>}
+            description={emptyDescription()}
+            action={canEvaluate && placementOptions.length > 0 && (
+              <button className="btn btn-primary" onClick={openCreate}>New evaluation</button>
+            )}
           />
         </div>
       ) : (
@@ -237,6 +261,7 @@ export default function Evaluations() {
         </div>
       )}
 
+      {/* View Modal */}
       {modal === 'view' && selected && (
         <Modal title="Evaluation details" onClose={() => setModal(null)}>
           {(() => {
@@ -254,8 +279,8 @@ export default function Evaluations() {
                   <div style={{ display: 'grid', gap: 12 }}>
                     {[
                       { label: 'Attendance & Punctuality', value: selected.attendance_punctuality, weight: '40%', color: 'var(--primary)' },
-                      { label: 'Technical Competence', value: selected.technical_competence, weight: '30%', color: 'var(--accent)' },
-                      { label: 'Quality of Work', value: selected.quality_of_work, weight: '30%', color: '#BA7517' },
+                      { label: 'Technical Competence',     value: selected.technical_competence,   weight: '30%', color: 'var(--accent)' },
+                      { label: 'Quality of Work',          value: selected.quality_of_work,        weight: '30%', color: '#BA7517' },
                     ].map(item => (
                       <div key={item.label}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -281,7 +306,8 @@ export default function Evaluations() {
         </Modal>
       )}
 
-      {(modal === 'create' || modal === 'edit') && (
+      {/* Create / Edit Modal — acad supervisor and admin only */}
+      {(modal === 'create' || modal === 'edit') && canEvaluate && (
         <Modal
           title={modal === 'create' ? 'New evaluation' : 'Edit evaluation'}
           onClose={() => setModal(null)}
@@ -302,7 +328,7 @@ export default function Evaluations() {
             <select name="placement" className="form-control" value={form.placement} onChange={handleChange} disabled={modal === 'edit'}>
               <option value="">— Select placement —</option>
               {modal === 'edit' && selected && (
-                <option value={selected.placement}>{selected.student_name} — {selected.organization_name || ''}</option>
+                <option value={selected.placement}>{selected.student_name}</option>
               )}
               {placementOptions.map(p => (
                 <option key={p.id} value={p.id}>{p.student_name} — {p.organization_name}</option>
@@ -312,16 +338,32 @@ export default function Evaluations() {
             {modal === 'create' && placementOptions.length === 0 && (
               <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 6 }}>
                 {isAcadSup
-                  ? 'No placements awaiting evaluation. You can only evaluate students assigned to you as academic supervisor.'
-                  : 'No placements available for evaluation.'}
+                  ? 'No approved placements assigned to you are awaiting evaluation.'
+                  : 'No approved placements available for evaluation.'}
               </div>
             )}
           </div>
 
+          {/* Admin: pick which academic supervisor submits this evaluation */}
+          {isAdmin && (
+            <div className="form-group">
+              <label className="form-label">Academic supervisor <span className="req">*</span></label>
+              <select name="academic_supervisor" className="form-control" value={form.academic_supervisor} onChange={handleChange}>
+                <option value="">— Select supervisor —</option>
+                {supervisors.map(s => (
+                  <option key={s.id} value={s.id}>
+                    {s.first_name && s.last_name ? `${s.first_name} ${s.last_name}` : s.username}
+                  </option>
+                ))}
+              </select>
+              {errors.academic_supervisor && <div className="form-error">{errors.academic_supervisor}</div>}
+            </div>
+          )}
+
           {[
             { name: 'attendance_punctuality', label: 'Attendance & Punctuality', weight: '40%', color: 'var(--primary)' },
-            { name: 'technical_competence', label: 'Technical Competence', weight: '30%', color: 'var(--accent)' },
-            { name: 'quality_of_work', label: 'Quality of Work', weight: '30%', color: '#BA7517' },
+            { name: 'technical_competence',   label: 'Technical Competence',     weight: '30%', color: 'var(--accent)' },
+            { name: 'quality_of_work',        label: 'Quality of Work',          weight: '30%', color: '#BA7517' },
           ].map(field => (
             <div className="form-group" key={field.name}>
               <label className="form-label">
