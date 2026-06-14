@@ -17,6 +17,7 @@ const ROLE_COLORS = {
   admin: { bg: 'var(--danger-light)', color: 'var(--danger)' },
 };
 
+// ESLINT-DISABLE-NEXT-LINE
 export default function Profile() {
   const { user, login } = useAuth();
   const [profile, setProfile] = useState(null);

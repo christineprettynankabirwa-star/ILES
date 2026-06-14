@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Spinner, Badge, EmptyState, Modal } from '../components/UI';
+import { Spinner, EmptyState, Modal } from '../components/UI';
 
 const emptyForm = {
   placement: '',
