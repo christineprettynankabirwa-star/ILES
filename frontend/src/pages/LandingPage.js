@@ -284,7 +284,7 @@ export default function Home() {
           <span style={{ fontWeight: 600, fontSize: 14, color: '#2C2C2A' }}>ILES Portal</span>
         </div>
         <p style={{ fontSize: 13, color: '#888780', margin: 0 }}>
-          © {new Date().getFullYear()} Internship Logging & Evaluation System · CSC 1202
+          © {new Date().getFullYear()} Internship Logging & Evaluation System · CSC 1202 designed By BALEERO ISAAC, NANKABIRWA CHRISTINE, SSALI JOEL AND NAMKUKA JACQUELINE NAAVA
         </p>
         <div style={{ display: 'flex', gap: 20 }}>
           <Link to="/login" style={{ fontSize: 13, color: '#5F5E5A', textDecoration: 'none' }}>Sign in</Link>

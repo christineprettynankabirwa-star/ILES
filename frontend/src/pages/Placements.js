@@ -7,7 +7,7 @@ const emptyForm = {
   student: '', academic_supervisor: '', workplace_supervisor: '',
   organization_name: '', registration_number: '', position: '',
   location: '', duration: '', stipend: '', description: '', course: '',
-  start_date: '', end_date: '', is_active: true,
+  start_date: '', end_date: '', is_active: false, // default inactive — admin approves
 };
 
 export default function Placements() {
@@ -15,23 +15,27 @@ export default function Placements() {
   const [placements, setPlacements] = useState([]);
   const [users, setUsers] = useState({ students: [], acad: [], work: [] });
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');          // FIX: surface load errors
+  const [loadError, setLoadError] = useState('');
   const [modal, setModal] = useState(null);
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
-  const isAdmin = user?.role === 'admin';
-  const isStudent = user?.role === 'student';
-  const isWorkSup = user?.role === 'work_supervisor';
-  const isAcadSup = user?.role === 'acad_supervisor';
+  const isAdmin    = user?.role === 'admin';
+  const isStudent  = user?.role === 'student';
+  const isWorkSup  = user?.role === 'work_supervisor';
+  const isAcadSup  = user?.role === 'acad_supervisor';
+
+  // Supervisors can VIEW only — no create/edit/delete
+  const canCreate  = isAdmin || isStudent;
+  const canEdit    = isAdmin; // only admin edits (including approve/assign)
+  const canDelete  = isAdmin;
 
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError('');
     try {
-      // FIX: supervisors also need /users/ to show supervisor names on their view
       const fetchUsers = (isAdmin || isWorkSup || isAcadSup)
         ? api.get('/users/')
         : Promise.resolve({ data: [] });
@@ -47,12 +51,11 @@ export default function Placements() {
         const all = uRes.data;
         setUsers({
           students: all.filter(u => u.role === 'student'),
-          acad: all.filter(u => u.role === 'acad_supervisor'),
-          work: all.filter(u => u.role === 'work_supervisor'),
+          acad:     all.filter(u => u.role === 'acad_supervisor'),
+          work:     all.filter(u => u.role === 'work_supervisor'),
         });
       }
     } catch (err) {
-      // FIX: was silently swallowing all errors — now surfaces them
       console.error('Placements load error:', err.response?.status, err.response?.data);
       const status = err.response?.status;
       if (status === 401) setLoadError('Session expired — please log in again.');
@@ -69,20 +72,20 @@ export default function Placements() {
   const openEdit = p => {
     setSelected(p);
     setForm({
-      student: p.student || '',
-      academic_supervisor: p.academic_supervisor || '',
+      student:              p.student || '',
+      academic_supervisor:  p.academic_supervisor || '',
       workplace_supervisor: p.workplace_supervisor || '',
-      organization_name: p.organization_name || '',
-      registration_number: p.registration_number || '',
-      position: p.position || '',
-      location: p.location || '',
-      duration: p.duration || '',
-      stipend: p.stipend || '',
-      description: p.description || '',
-      course: p.course || '',
-      start_date: p.start_date || '',
-      end_date: p.end_date || '',
-      is_active: p.is_active,
+      organization_name:    p.organization_name || '',
+      registration_number:  p.registration_number || '',
+      position:             p.position || '',
+      location:             p.location || '',
+      duration:             p.duration || '',
+      stipend:              p.stipend || '',
+      description:          p.description || '',
+      course:               p.course || '',
+      start_date:           p.start_date || '',
+      end_date:             p.end_date || '',
+      is_active:            p.is_active,
     });
     setErrors({});
     setModal('edit');
@@ -103,13 +106,12 @@ export default function Placements() {
       const payload = { ...form };
       if (!payload.stipend) delete payload.stipend;
       if (!payload.description) delete payload.description;
-      // FIX: keep supervisor fields even when empty string so the
-      // backend can clear them — only delete if truly not provided
       if (!payload.academic_supervisor) delete payload.academic_supervisor;
       if (!payload.workplace_supervisor) delete payload.workplace_supervisor;
-      // Non-admins never see the Student field; strip it so
-      // perform_create() defaults it to request.user
       if (!payload.student) delete payload.student;
+
+      // Students always create inactive — admin approves later
+      if (isStudent) payload.is_active = false;
 
       if (modal === 'create') {
         await api.post('/placements/', payload);
@@ -132,6 +134,16 @@ export default function Placements() {
     }
   };
 
+  // Admin-only: toggle approval status
+  const handleApprove = async p => {
+    try {
+      await api.patch(`/placements/${p.id}/`, { is_active: !p.is_active });
+      load();
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Could not update placement status.');
+    }
+  };
+
   const handleDelete = async id => {
     if (!window.confirm('Delete this placement?')) return;
     try {
@@ -144,29 +156,23 @@ export default function Placements() {
 
   if (loading) return <Spinner />;
 
-  // FIX: show a real error message instead of blank screen
   if (loadError) {
     return (
       <div>
-        <div className="page-header">
-          <div><h1>Internship placements</h1></div>
-        </div>
+        <div className="page-header"><div><h1>Internship placements</h1></div></div>
         <div className="alert alert-error">
           {loadError}{' '}
-          <button className="btn btn-secondary btn-sm" onClick={load} style={{ marginLeft: 12 }}>
-            Retry
-          </button>
+          <button className="btn btn-secondary btn-sm" onClick={load} style={{ marginLeft: 12 }}>Retry</button>
         </div>
       </div>
     );
   }
 
-  // FIX: supervisors see a helpful message explaining why the list may be empty
   const emptyDescription = () => {
-    if (isStudent) return 'Register your internship placement to get started.';
-    if (isWorkSup) return 'No students have been assigned to you as workplace supervisor yet. Ask your administrator to link student placements to your account.';
-    if (isAcadSup) return 'No students have been assigned to you as academic supervisor yet. Ask your administrator to link student placements to your account.';
-    return 'No internship placements found. Create the first one using the button above.';
+    if (isStudent) return 'Register your internship placement to get started. It will be reviewed and approved by the administrator.';
+    if (isWorkSup) return 'No students have been assigned to you as workplace supervisor yet.';
+    if (isAcadSup) return 'No students have been assigned to you as academic supervisor yet.';
+    return 'No internship placements found.';
   };
 
   return (
@@ -175,30 +181,40 @@ export default function Placements() {
         <div>
           <h1>Internship placements</h1>
           <p>
-            {isStudent ? 'Your registered internship placement(s)' :
-             isWorkSup ? 'Students under your workplace supervision' :
-             isAcadSup ? 'Students under your academic supervision' :
-             'Manage student internship placements'}
+            {isStudent  ? 'Your registered internship placement(s)' :
+             isWorkSup  ? 'Students under your workplace supervision' :
+             isAcadSup  ? 'Students under your academic supervision' :
+             'Manage and approve student internship placements'}
           </p>
         </div>
-        {(isAdmin || isStudent) && (
-          <button className="btn btn-primary" onClick={openCreate}>
-            + New placement
-          </button>
+        {canCreate && (
+          <button className="btn btn-primary" onClick={openCreate}>+ New placement</button>
         )}
       </div>
 
-      {/* FIX: warn admin when no supervisor users exist so they know dropdowns will be empty */}
+      {/* Admin notices */}
       {isAdmin && users.work.length === 0 && (
         <div className="alert alert-info" style={{ marginBottom: 16 }}>
-          <strong>No workplace supervisors found.</strong> Register at least one user with the
-          role <em>work_supervisor</em> before creating placements, so you can assign them.
+          <strong>No workplace supervisors found.</strong> Register at least one <em>work_supervisor</em> user before assigning placements.
         </div>
       )}
       {isAdmin && users.acad.length === 0 && (
         <div className="alert alert-info" style={{ marginBottom: 16 }}>
-          <strong>No academic supervisors found.</strong> Register at least one user with the
-          role <em>acad_supervisor</em> before creating placements, so you can assign them.
+          <strong>No academic supervisors found.</strong> Register at least one <em>acad_supervisor</em> user before assigning placements.
+        </div>
+      )}
+
+      {/* Supervisor read-only notice */}
+      {(isWorkSup || isAcadSup) && (
+        <div className="alert alert-info" style={{ marginBottom: 16 }}>
+          You can view placements assigned to you. Contact the administrator to make any changes.
+        </div>
+      )}
+
+      {/* Student pending notice */}
+      {isStudent && placements.some(p => !p.is_active) && (
+        <div className="alert alert-info" style={{ marginBottom: 16 }}>
+          Your placement is pending administrator approval.
         </div>
       )}
 
@@ -208,12 +224,7 @@ export default function Placements() {
             icon="🏢"
             title="No placements yet"
             description={emptyDescription()}
-            action={
-              (isAdmin || isStudent) &&
-              <button className="btn btn-primary" onClick={openCreate}>
-                {isStudent ? 'Register placement' : 'Add placement'}
-              </button>
-            }
+            action={canCreate && <button className="btn btn-primary" onClick={openCreate}>{isStudent ? 'Register placement' : 'Add placement'}</button>}
           />
         </div>
       ) : (
@@ -225,7 +236,6 @@ export default function Placements() {
                   <th>Student</th>
                   <th>Organisation</th>
                   <th>Position</th>
-                  {/* FIX: show supervisor columns so supervisors can confirm their assignment */}
                   {(isAdmin || isAcadSup) && <th>Academic supervisor</th>}
                   {(isAdmin || isWorkSup) && <th>Workplace supervisor</th>}
                   <th>Dates</th>
@@ -247,18 +257,12 @@ export default function Placements() {
                     </td>
                     <td>{p.position}</td>
                     {(isAdmin || isAcadSup) && (
-                      <td style={{ fontSize: 13 }}>
-                        {p.academic_supervisor_name || <span className="text-muted">—</span>}
-                      </td>
+                      <td style={{ fontSize: 13 }}>{p.academic_supervisor_name || <span className="text-muted">—</span>}</td>
                     )}
                     {(isAdmin || isWorkSup) && (
-                      <td style={{ fontSize: 13 }}>
-                        {p.workplace_supervisor_name || <span className="text-muted">—</span>}
-                      </td>
+                      <td style={{ fontSize: 13 }}>{p.workplace_supervisor_name || <span className="text-muted">—</span>}</td>
                     )}
-                    <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                      {p.start_date} → {p.end_date}
-                    </td>
+                    <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{p.start_date} → {p.end_date}</td>
                     <td><Badge status={p.is_active ? 'active' : 'inactive'} /></td>
                     <td>
                       {p.final_grade
@@ -266,12 +270,25 @@ export default function Placements() {
                         : <span className="text-muted">—</span>}
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: 6 }}>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                         <button className="btn btn-secondary btn-sm" onClick={() => openView(p)}>View</button>
-                        {(isAdmin || (isStudent && p.is_active)) && (
+                        {canEdit && (
                           <button className="btn btn-secondary btn-sm" onClick={() => openEdit(p)}>Edit</button>
                         )}
+                        {/* Student can edit their own inactive placement */}
+                        {isStudent && !p.is_active && (
+                          <button className="btn btn-secondary btn-sm" onClick={() => openEdit(p)}>Edit</button>
+                        )}
+                        {/* Admin approve/reject toggle */}
                         {isAdmin && (
+                          <button
+                            className={`btn btn-sm ${p.is_active ? 'btn-danger' : 'btn-primary'}`}
+                            onClick={() => handleApprove(p)}
+                          >
+                            {p.is_active ? 'Revoke' : 'Approve'}
+                          </button>
+                        )}
+                        {canDelete && (
                           <button className="btn btn-danger btn-sm" onClick={() => handleDelete(p.id)}>Delete</button>
                         )}
                       </div>
@@ -300,6 +317,9 @@ export default function Placements() {
             <Detail label="Stipend" value={selected.stipend || '—'} />
             {selected.description && <Detail label="Description" value={selected.description} />}
             <Detail label="Status" value={<Badge status={selected.is_active ? 'active' : 'inactive'} />} />
+            {!selected.is_active && (
+              <div className="alert alert-info" style={{ margin: 0 }}>Awaiting administrator approval.</div>
+            )}
             <Detail label="Grade" value={selected.final_grade
               ? <span className={`badge badge-${selected.final_grade}`}>{selected.final_grade} ({parseFloat(selected.total_score).toFixed(1)})</span>
               : '—'} />
@@ -307,8 +327,8 @@ export default function Placements() {
         </Modal>
       )}
 
-      {/* Create / Edit Modal */}
-      {(modal === 'create' || modal === 'edit') && (
+      {/* Create / Edit Modal — only admin and student */}
+      {(modal === 'create' || modal === 'edit') && (canCreate || canEdit) && (
         <Modal
           title={modal === 'create' ? 'New placement' : 'Edit placement'}
           onClose={() => setModal(null)}
@@ -324,6 +344,13 @@ export default function Placements() {
           {errors.general && <div className="alert alert-error">{errors.general}</div>}
           {errors.non_field_errors && <div className="alert alert-error">{errors.non_field_errors}</div>}
 
+          {isStudent && (
+            <div className="alert alert-info" style={{ marginBottom: 16 }}>
+              Your placement will be submitted for administrator approval.
+            </div>
+          )}
+
+          {/* Admin-only: assign student and supervisors */}
           {isAdmin && (
             <>
               <div className="form-row">
@@ -339,14 +366,7 @@ export default function Placements() {
                     ))}
                   </select>
                   {errors.student && <div className="form-error">{errors.student}</div>}
-                  {/* FIX: helpful hint if no students registered yet */}
-                  {users.students.length === 0 && (
-                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-                      No student accounts found. Register students first.
-                    </div>
-                  )}
                 </div>
-
                 <div className="form-group">
                   <label className="form-label">Academic supervisor</label>
                   <select name="academic_supervisor" className="form-control" value={form.academic_supervisor} onChange={handleChange}>
@@ -357,15 +377,8 @@ export default function Placements() {
                       </option>
                     ))}
                   </select>
-                  {/* FIX: warn if dropdown is empty */}
-                  {users.acad.length === 0 && (
-                    <div style={{ fontSize: 12, color: 'var(--warning)', marginTop: 4 }}>
-                      No academic supervisors found — register one first.
-                    </div>
-                  )}
                 </div>
               </div>
-
               <div className="form-group">
                 <label className="form-label">Workplace supervisor</label>
                 <select name="workplace_supervisor" className="form-control" value={form.workplace_supervisor} onChange={handleChange}>
@@ -376,12 +389,13 @@ export default function Placements() {
                     </option>
                   ))}
                 </select>
-                {/* FIX: warn if dropdown is empty */}
-                {users.work.length === 0 && (
-                  <div style={{ fontSize: 12, color: 'var(--warning)', marginTop: 4 }}>
-                    No workplace supervisors found — register one first.
-                  </div>
-                )}
+              </div>
+              {/* Admin approval toggle */}
+              <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <input type="checkbox" id="is_active" name="is_active" checked={form.is_active} onChange={handleChange} />
+                <label htmlFor="is_active" style={{ margin: 0, fontSize: 14 }}>
+                  Approve placement (mark as active)
+                </label>
               </div>
             </>
           )}
@@ -445,11 +459,6 @@ export default function Placements() {
           <div className="form-group">
             <label className="form-label">Description</label>
             <textarea name="description" className="form-control" rows={3} value={form.description} onChange={handleChange} />
-          </div>
-
-          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <input type="checkbox" id="is_active" name="is_active" checked={form.is_active} onChange={handleChange} />
-            <label htmlFor="is_active" style={{ margin: 0, fontSize: 14 }}>Active placement</label>
           </div>
         </Modal>
       )}
