@@ -27,6 +27,7 @@ export default function Evaluations() {
   const { user } = useAuth();
   const [evals, setEvals] = useState([]);
   const [placements, setPlacements] = useState([]);
+  const [supervisors, setSupervisors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null);
   const [selected, setSelected] = useState(null);
@@ -39,8 +40,6 @@ export default function Evaluations() {
   const isAdmin    = role === 'admin';
   const isWorkSup  = role === 'work_supervisor';
   const isStudent  = role === 'student';
-
-  const [supervisors, setSupervisors] = useState([]);
 
   // Only academic supervisors and admins can create/edit/delete evaluations
   const canEvaluate = isAcadSup || isAdmin;
