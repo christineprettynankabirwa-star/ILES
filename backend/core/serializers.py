@@ -100,6 +100,9 @@ class InternshipPlacementSerializer(serializers.ModelSerializer):
         model = InternshipPlacement
         fields = '__all__'
         read_only_fields = ['total_score', 'final_grade', 'created_at']
+        extra_kwargs = {
+            'student': {'required': False, 'allow_null': True},
+        }
 
     def validate(self, data):
         student = data.get('student') or (self.instance.student if self.instance else None)

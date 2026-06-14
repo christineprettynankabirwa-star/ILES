@@ -1,9 +1,14 @@
+import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Spinner } from './UI';
 
-function ProtectedRoute({ children }) {
-    const token = localStorage.getItem('token');
+export default function ProtectedRoute({ children, roles }) {
+  const { user, loading } = useAuth();
 
-    return token ? children : <Navigate to="/login" replace />;
+  if (loading) return <Spinner />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (roles && !roles.includes(user.role)) return <Navigate to="/dashboard" replace />;
+
+  return children;
 }
-
-export default ProtectedRoute;

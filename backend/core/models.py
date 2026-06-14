@@ -162,13 +162,6 @@ class WeeklyLog(models.Model):
         return f"Week {self.week_number} - {self.student.username} ({self.status})"
 
     def clean(self):
-        if self.week_start_date:
-            submission_deadline = self.week_start_date + timedelta(days=7)
-            if self.status == 'submitted' and timezone.now().date() > submission_deadline:
-                raise ValidationError(
-                    f"The submission deadline for Week {self.week_number} has passed "
-                    f"({submission_deadline})."
-                )
         if self.pk:
             original = WeeklyLog.objects.get(pk=self.pk)
             if original.status == 'approved':
