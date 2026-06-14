@@ -1,179 +1,83 @@
-import React, { useState, useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Link,
-  Navigate,
-} from "react-router-dom";
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import Placements from './pages/Placements';
+import WeeklyLogs from './pages/WeeklyLogs';
+import Evaluations from './pages/Evaluations';
+import Users from './pages/Users';
+import Departments from './pages/Departments';
+import Criteria from './pages/Criteria';
+import Profiles from './pages/Profiles';
+import AboutUs from './pages/AboutUs';
+import LandingPage from './pages/LandingPage';
 
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import AboutUs from "./pages/AboutUs";
-import ForgotPassword from "./pages/ForgotPassword";
-import LandingSite from "./pages/LandingSite";
-
-import Dashboard from "./components/Dashboard";
-import StudentDashboard from "./components/StudentDashboard";
-import AdminDashboard from "./components/AdminDashboard";
-import AcademicSupervisorDashboard from "./components/AcademicSupervisorDashboard";
-import ProtectedRoute from "./components/ProtectedRoute";
-
-import "./App.css";
-
-const navStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "15px 30px",
-  background: "#2c3e50",
-  color: "white",
-};
-
-const linkStyle = {
-  color: "white",
-  textDecoration: "none",
-};
-
-const logoutButtonStyle = {
-  background: "#e74c3c",
-  border: "none",
-  color: "white",
-  padding: "5px 10px",
-  borderRadius: "4px",
-  cursor: "pointer",
-};
-
-function App() {
-  const [token, setToken] = useState(() => {
-    const storedToken = localStorage.getItem("token");
-    return storedToken && storedToken !== "undefined" && storedToken !== "null"
-      ? storedToken
-      : null;
-  });
-
-  useEffect(() => {
-    if (token) {
-      localStorage.setItem("token", token);
-    } else {
-      localStorage.removeItem("token");
-      localStorage.removeItem("userRole");
-    }
-  }, [token]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("userRole");
-    setToken(null);
-  };
-
-  const getDashboardRoute = (role) => {
-    switch (role) {
-      case "admin":
-        return "/admin-dashboard";
-
-      case "supervisor":
-      case "academic_supervisor":
-      case "acad_supervisor":
-        return "/academic-supervisor-dashboard";
-
-      default:
-        return "/student-dashboard";
-    }
-  };
-
-  const userRole = localStorage.getItem("userRole");
-  const dashboardRoute = getDashboardRoute(userRole);
-
+export default function App() {
   return (
-    <Router>
-      <div className="App">
-        {token && (
-          <nav style={navStyle}>
-            <h2 style={{ margin: 0 }}>ILES Portal</h2>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/about" element={<AboutUs />} />
 
-            <div style={{ display: "flex", gap: "20px" }}>
-              <Link to={dashboardRoute} style={linkStyle}>
-                Dashboard
-              </Link>
-
-              <Link to="/about" style={linkStyle}>
-                About Us
-              </Link>
-
-              <button onClick={handleLogout} style={logoutButtonStyle}>
-                Logout
-              </button>
-            </div>
-          </nav>
-        )}
-
-        <div style={{ padding: token ? "20px" : "0" }}>
-          <Routes>
-            <Route path="/" element={<LandingSite />} />
-
+          <Route
+            path="/app"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/app/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="placements" element={<Placements />} />
+            <Route path="weekly-logs" element={<WeeklyLogs />} />
             <Route
-              path="/student-dashboard"
+              path="evaluations"
               element={
-                <ProtectedRoute>
-                  <StudentDashboard />
+                <ProtectedRoute roles={['student', 'acad_supervisor', 'admin']}>
+                  <Evaluations />
                 </ProtectedRoute>
               }
             />
-
+            <Route path="profile" element={<Profiles />} />
             <Route
-              path="/admin-dashboard"
+              path="users"
               element={
-                <ProtectedRoute>
-                  <AdminDashboard />
+                <ProtectedRoute roles={['admin']}>
+                  <Users />
                 </ProtectedRoute>
               }
             />
-
             <Route
-              path="/academic-supervisor-dashboard"
+              path="departments"
               element={
-                <ProtectedRoute>
-                  <AcademicSupervisorDashboard />
+                <ProtectedRoute roles={['admin']}>
+                  <Departments />
                 </ProtectedRoute>
               }
             />
-
             <Route
-              path="/dashboard"
+              path="criteria"
               element={
-                <ProtectedRoute>
-                  <Dashboard />
+                <ProtectedRoute roles={['admin']}>
+                  <Criteria />
                 </ProtectedRoute>
               }
             />
+          </Route>
 
-            <Route path="/about" element={<AboutUs />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-
-            <Route
-              path="/signup"
-              element={!token ? <Signup /> : <Navigate to={dashboardRoute} />}
-            />
-
-            <Route
-              path="/login"
-              element={
-                !token ? (
-                  <Login setToken={setToken} />
-                ) : (
-                  <Navigate to={dashboardRoute} />
-                )
-              }
-            />
-
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </div>
-      </div>
-    </Router>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
-
-export default App;
