@@ -172,7 +172,7 @@ class InternshipPlacementViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.users
+        user = self.request.user
         if user.role == 'student':
             return InternshipPlacement.objects.filter(student=user)
         if user.role == 'work_supervisor':
@@ -182,8 +182,9 @@ class InternshipPlacementViewSet(viewsets.ModelViewSet):
         return InternshipPlacement.objects.all()
 
     def perform_create(self, serializer):
-        if self.request.user.role == 'student':
-            serializer.save(student=self.request.user)
+        user = self.request.user
+        if user.role == 'student':
+            serializer.save(student=user)
         else:
             serializer.save()
 
