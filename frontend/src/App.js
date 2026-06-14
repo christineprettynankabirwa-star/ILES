@@ -35,8 +35,8 @@ export default function App() {
             {/* Public routes */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/signup" element={<Register />} />
+            <Route path="/register" element={<DepartmentsProvider><Register /></DepartmentsProvider>} />
+            <Route path="/signup" element={<DepartmentsProvider><Register /></DepartmentsProvider>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
 
             {/* Protected routes */}

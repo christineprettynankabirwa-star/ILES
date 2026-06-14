@@ -89,10 +89,14 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000,http://127.0.0.1:3000'
-).split(',')
+CORS_ALLOWED_ORIGINS = [
+        "https://iles-ruddy.vercel.app",
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://iles-.*-group8-s-projects20\.vercel\.app$",
+
+]
 CORS_ALLOW_CREDENTIALS = True
 
 
