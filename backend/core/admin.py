@@ -1,62 +1,111 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import Issue, CustomUser, InternshipPlacement, WeeklyLog, EvaluationCriteria, Evaluation, LogStatusHistory
+from .models import (
+    CustomUser, Department, InternshipPlacement, WeeklyLog,
+    EvaluationCriteria, Evaluation, LogStatusHistory
+)
 
-
-admin.site.register(Issue)
 admin.site.register(LogStatusHistory)
+admin.site.register(EvaluationCriteria)
 
-# --- Custom User Admin ---
+
+@admin.register(Department)
+class DepartmentAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code')
+    search_fields = ('name', 'code')
+
+
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
-    list_display = ("username", "email", "role", "is_staff", "is_superuser")
+    list_display = ("username", "email", "role", "department", "is_staff", "is_superuser")
+    search_fields = ("username", "email")
+    list_filter = ("role", "department", "is_staff", "is_superuser")
+
     fieldsets = UserAdmin.fieldsets + (
-        ("Role Information", {"fields": ("role", "university_id")}),
+        ("Role Information and Permissions", {
+            "fields": ("role", "department", "student_number", "staff_number", "phone_number")
+        }),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ("Role Information", {"fields": ("role", "university_id")}),
+        ("Role Information", {
+            "fields": ("role", "department", "student_number", "staff_number", "phone_number")
+        }),
     )
-#-----CustomUserAdmin------
-class CustomUserAdmin(admin.ModelAdmin):
-    search_fields = ("username", "email")
-    list_filter = ("role", "is_staff", "is_superuser")
-    list_display = ("username", "email", "role", "is_staff", "is_superuser")
+
+
 admin.site.register(CustomUser, CustomUserAdmin)
-# --- Internship Placement Admin ---
+
+
 class InternshipPlacementAdmin(admin.ModelAdmin):
-    list_display = ("organization_name", "position", "location", "duration", "stipend",)
-    search_fields = ['student__username', 'organization_name', 'academic_supervisor__username', 'organization_name', 'position', 'location']
-    list_filter = ("location",)
-    fieldsets = (   
-        ("Student and university", {
+    list_display = (
+        "student", "organization_name", "position", "location",
+        "academic_supervisor", "workplace_supervisor",
+        "total_score", "final_grade", "is_active"
+    )
+    search_fields = [
+        'student__username', 'organization_name', 'position',
+        'academic_supervisor__username', 'workplace_supervisor__username'
+    ]
+    list_filter = ("location", "final_grade", "is_active")
+    readonly_fields = ("total_score", "final_grade")
+
+    fieldsets = (
+        ("Student and University", {
             "fields": ("student", "registration_number", "course", "academic_supervisor"),
             'description': 'Select required information.',
         }),
         ("Workplace Details", {
-            "fields": ("organization_name", "workplace_supervisor_name", "workplace_supervisor_email")
+            # FIX: workplace_supervisor is now a FK (was workplace_supervisor_name/_email)
+            "fields": ("organization_name", "workplace_supervisor")
         }),
-        ("Placement Duration and status", {
-            "fields": ("start_date", "end_date", "is_active", "position", "location", "duration", "stipend", "description",)
+        ("Placement Duration and Status", {
+            "fields": (
+                "start_date", "end_date", "is_active", "position",
+                "location", "duration", "stipend", "description",
+                "total_score", "final_grade"
+            )
         }),
     )
 
+
 admin.site.register(InternshipPlacement, InternshipPlacementAdmin)
-# --- Weekly Log Admin ---
+
+
 class WeeklyLogAdmin(admin.ModelAdmin):
-    list_display = ('placement', 'week_number', 'status', 'created_at')
+    list_display = ('get_student_name', 'get_organization', 'week_number', 'status', 'created_at')
     list_filter = ('status', 'week_number')
     search_fields = ('placement__student__username', 'activities')
+
+    @admin.display(description='Student')
+    def get_student_name(self, obj):
+        # FIX: student is now a property derived from placement
+        return obj.placement.student.username
+
+    @admin.display(description='Organization')
+    def get_organization(self, obj):
+        return obj.placement.organization_name
+
+
 admin.site.register(WeeklyLog, WeeklyLogAdmin)
-#-------EvaluationCriteria---------------
-#-------Criteria Admin-------------------
-class EvaluationCriteriaAdmin(admin.ModelAdmin):
-    list_display = ('title', 'description', 'max_score')
-    search_fields = ('title',)
-admin.site.register(EvaluationCriteria, EvaluationCriteriaAdmin)
-#--------Evaluation----------------
-#--------Evaluation Admin(FIXED----------------
+
+
 class EvaluationAdmin(admin.ModelAdmin):
-    list_display = ('student', 'placement', 'criteria', 'score', 'date_evaluated')
-    list_filter = ('placement', 'criteria')
-    search_fields = ('student__username',)
+    list_display = (
+        'get_student',
+        'academic_supervisor',
+        'attendance_punctuality',
+        'technical_competence',
+        'quality_of_work',
+        'total_weighted_score',
+        'date_evaluated'
+    )
+    list_filter = ('date_evaluated',)
+    search_fields = ('placement__student__username', 'academic_supervisor__username')
+    readonly_fields = ('total_weighted_score',)
+
+    @admin.display(description='Student')
+    def get_student(self, obj):
+        return obj.placement.student.username
+
+
 admin.site.register(Evaluation, EvaluationAdmin)

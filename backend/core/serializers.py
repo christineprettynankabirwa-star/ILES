@@ -1,54 +1,221 @@
 from rest_framework import serializers
-from .models import WeeklyLog, EvaluationCriteria, Evaluation, InternshipPlacement, Issue
-class WeeklyLogSerializer(serializers.ModelSerializer):
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import get_user_model
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .models import (
+    CustomUser, Department, WeeklyLog,
+    EvaluationCriteria, Evaluation, InternshipPlacement,
+    LogStatusHistory,
+)
+
+User = get_user_model()
+
+
+# DEPARTMENT
+class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = WeeklyLog
+        model = Department
         fields = '__all__'
+
+
+# CUSTOM USER
+class CustomUserSerializer(serializers.ModelSerializer):
+    department_name = serializers.CharField(source='department.name', read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'id', 'username', 'email', 'first_name', 'last_name',
+            'role', 'student_number', 'department', 'department_name',
+            'staff_number', 'phone_number',
+        ]
+
+
+# USER REGISTRATION
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(
+        write_only=True, required=True, validators=[validate_password]
+    )
+    password2 = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'username', 'email', 'first_name', 'last_name',
+            'role', 'student_number', 'department',
+            'staff_number', 'phone_number',
+            'password', 'password2',
+        ]
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError(
+                {"password": "Password fields didn't match."}
+            )
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop('password2')
+        password = validated_data.pop('password')
+        user = CustomUser(**validated_data)
+        user.set_password(password)
+        user.save()
+        from django.contrib.auth.models import Group
+        group, _ = Group.objects.get_or_create(name=user.get_role_display())
+        user.groups.add(group)
+        return user
+
+
+# JWT — custom claims
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['username'] = user.username
+        token['email'] = user.email
+        token['role'] = user.role
+        token['department_id'] = user.department_id
+        token['department'] = user.department.name if user.department else None
+        return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['user'] = {
+            'id': self.user.id,
+            'username': self.user.username,
+            'email': self.user.email,
+            'first_name': self.user.first_name,
+            'last_name': self.user.last_name,
+            'role': self.user.role,
+            'student_number': self.user.student_number,
+            'department': self.user.department.name if self.user.department else None,
+        }
+        return data
+
+
+# INTERNSHIP PLACEMENT
 class InternshipPlacementSerializer(serializers.ModelSerializer):
+    student_name = serializers.SerializerMethodField()
+    academic_supervisor_name = serializers.SerializerMethodField()
+    workplace_supervisor_name = serializers.SerializerMethodField()
+
+    def get_student_name(self, obj):
+        u = obj.student
+        if not u:
+            return '—'
+        full = f"{u.first_name} {u.last_name}".strip()
+        return full or u.username
+
+    def get_academic_supervisor_name(self, obj):
+        u = obj.academic_supervisor
+        if not u:
+            return '—'
+        full = f"{u.first_name} {u.last_name}".strip()
+        return full or u.username
+
+    def get_workplace_supervisor_name(self, obj):
+        u = obj.workplace_supervisor
+        if not u:
+            return '—'
+        full = f"{u.first_name} {u.last_name}".strip()
+        return full or u.username
+
     class Meta:
         model = InternshipPlacement
         fields = '__all__'
+        read_only_fields = ['total_score', 'final_grade', 'created_at']
+        extra_kwargs = {
+            'student': {'required': False, 'allow_null': True},
+            'registration_number': {'required': False, 'allow_blank': True},
+        }
 
     def validate(self, data):
-        #Extract the data being sent from the UI
-        student = data.get('student')
-        start = data.get('start_date')
-        end = data.get('end_date')
+        student = data.get('student') or (self.instance.student if self.instance else None)
+        start = data.get('start_date') or (self.instance.start_date if self.instance else None)
+        end = data.get('end_date') or (self.instance.end_date if self.instance else None)
 
-        #Logical check: Is the end date after the start date
-        if start and end and start >= end:
-            raise serializers.ValidationError({
-                "end_date": "The internship cannot end before it starts."
-                })
+        if start and end:
+            if start >= end:
+                raise serializers.ValidationError(
+                    {"end_date": "The internship end date must be after the start date."}
+                )
+            overlapping = InternshipPlacement.objects.filter(
+                student=student,
+                start_date__lt=end,
+                end_date__gt=start,
+            )
+            if self.instance:
+                overlapping = overlapping.exclude(pk=self.instance.pk)
+            if overlapping.exists():
+                raise serializers.ValidationError(
+                    "This student already has an internship during these dates."
+                )
+        return data
 
-            #Check for overlapping placements for the same student
-        overlapping_placements = InternshipPlacement.objects.filter(
-            student=student,
-            start_date__lt=end,
-            end_date__gt=start
-        )
 
-         #Safety (If editing an existing placement, don't count itself as an overlap)
-        if self.instance:
-            overlapping_placements = overlapping_placements.exclude(pk=self.instance.pk)
+# LOG STATUS HISTORY
+class LogStatusHistorySerializer(serializers.ModelSerializer):
+    changed_by_username = serializers.ReadOnlyField(source='changed_by.username')
 
-        if overlapping_placements.exists():
-            raise serializers.ValidationError({
-                "This student already has an internship placement during these dates."
-            })
+    class Meta:
+        model = LogStatusHistory
+        fields = '__all__'
 
+
+# WEEKLY LOG
+class WeeklyLogSerializer(serializers.ModelSerializer):
+    student_name = serializers.ReadOnlyField(source='student.username')
+    history = LogStatusHistorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = WeeklyLog
+        fields = '__all__'
+        read_only_fields = ['student', 'created_at', 'submitted_at', 'history']
+
+    def validate_status(self, new_status):
+        instance = self.instance
+        if instance is None:
+            return new_status
+        old_status = instance.status
+        allowed = WeeklyLog.VALID_TRANSITIONS.get(old_status, [])
+        if new_status != old_status and new_status not in allowed:
+            raise serializers.ValidationError(
+                f"Cannot change status from '{old_status}' to '{new_status}'."
+            )
+        return new_status
+
+    def update(self, instance, validated_data):
+        instance._changed_by = self.context['request'].user
+        return super().update(instance, validated_data)
+
+
+# EVALUATION CRITERIA
 class EvaluationCriteriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = EvaluationCriteria
         fields = '__all__'
 
+
+# EVALUATION
 class EvaluationSerializer(serializers.ModelSerializer):
+    student_name = serializers.ReadOnlyField(source='placement.student.username')
+    computed_score = serializers.ReadOnlyField(source='total_weighted_score')
+
     class Meta:
         model = Evaluation
         fields = '__all__'
+        read_only_fields = ['total_weighted_score', 'date_evaluated']
 
-#THE ISSUESERIALIZER
-class IssueSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Issue
-        fields = '__all__'
+    def validate(self, data):
+        placement = data.get('placement') or (
+            self.instance.placement if self.instance else None
+        )
+        if (
+            placement
+            and not self.instance
+            and Evaluation.objects.filter(placement=placement).exists()
+        ):
+            raise serializers.ValidationError(
+                "An evaluation for this placement already exists."
+            )
+        return data
