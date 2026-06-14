@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { Spinner, EmptyState, Modal } from '../components/UI';
 
 const emptyForm = { title: '', description: '', max_score: '' };
 
 export default function Criteria() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [criteria, setCriteria] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null);
@@ -33,6 +36,7 @@ export default function Criteria() {
   };
 
   const handleSave = async () => {
+    if (!isAdmin) return;
     setSaving(true);
     try {
       if (modal === 'create') {
@@ -50,6 +54,7 @@ export default function Criteria() {
   };
 
   const handleDelete = async id => {
+    if (!isAdmin) return;
     if (!window.confirm('Delete this criterion?')) return;
     await api.delete(`/criteria/${id}/`);
     load();
@@ -62,11 +67,13 @@ export default function Criteria() {
       <div className="page-header">
         <div>
           <h1>Evaluation criteria</h1>
-          <p>Configure the scoring criteria used in student evaluations</p>
+          <p>{isAdmin ? 'Configure the scoring criteria used in student evaluations' : 'Reference criteria used in student evaluations'}</p>
         </div>
-        <button className="btn btn-primary" onClick={openCreate}>
-          + New criterion
-        </button>
+        {isAdmin && (
+          <button className="btn btn-primary" onClick={openCreate}>
+            + New criterion
+          </button>
+        )}
       </div>
 
       <div className="alert alert-info" style={{ marginBottom: 20 }}>
@@ -79,7 +86,7 @@ export default function Criteria() {
             icon="📋"
             title="No criteria defined"
             description="Add evaluation criteria to reference during assessments."
-            action={<button className="btn btn-primary" onClick={openCreate}>Add criterion</button>}
+            action={isAdmin && <button className="btn btn-primary" onClick={openCreate}>Add criterion</button>}
           />
         </div>
       ) : (
@@ -101,20 +108,22 @@ export default function Criteria() {
                   {c.description}
                 </p>
               )}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-secondary btn-sm" onClick={() => openEdit(c)} style={{ flex: 1 }}>
-                  Edit
-                </button>
-                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(c.id)}>
-                  Delete
-                </button>
-              </div>
+              {isAdmin && (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="btn btn-secondary btn-sm" onClick={() => openEdit(c)} style={{ flex: 1 }}>
+                    Edit
+                  </button>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDelete(c.id)}>
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {(modal === 'create' || modal === 'edit') && (
+      {isAdmin && (modal === 'create' || modal === 'edit') && (
         <Modal
           title={modal === 'create' ? 'New criterion' : 'Edit criterion'}
           onClose={() => setModal(null)}

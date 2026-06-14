@@ -40,6 +40,19 @@ export default function Evaluations() {
   const isAcadSup = role === 'acad_supervisor';
   const isAdmin = role === 'admin';
 
+  // Which placements should appear in the "Student placement" dropdown?
+  // - Academic supervisors should only evaluate students they actually
+  //   supervise (placement.academic_supervisor === their own id).
+  // - Admins can evaluate any placement.
+  // - Either way, a placement that already has an evaluation shouldn't be
+  //   offered again for "create" (use Edit on the existing one instead).
+  const evaluatedPlacementIds = new Set(evals.map(e => e.placement));
+  const placementOptions = placements.filter(p => {
+    if (isAcadSup && p.academic_supervisor !== user.id) return false;
+    if (evaluatedPlacementIds.has(p.id)) return false;
+    return true;
+  });
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -55,11 +68,7 @@ export default function Evaluations() {
 
   useEffect(() => { load(); }, [load]);
 
-  const openCreate = () => {
-    setForm(emptyForm);
-    setErrors({});
-    setModal('create');
-  };
+  const openCreate = () => { setForm(emptyForm); setErrors({}); setModal('create'); };
 
   const openEdit = ev => {
     setSelected(ev);
@@ -74,17 +83,13 @@ export default function Evaluations() {
     setModal('edit');
   };
 
-  const openView = ev => {
-    setSelected(ev);
-    setModal('view');
-  };
+  const openView = ev => { setSelected(ev); setModal('view'); };
 
   const handleChange = e => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
     setErrors(prev => ({ ...prev, [e.target.name]: '' }));
   };
 
-  // Preview computed score
   const previewScore = () => {
     const a = parseFloat(form.attendance_punctuality) || 0;
     const t = parseFloat(form.technical_competence) || 0;
@@ -101,7 +106,10 @@ export default function Evaluations() {
     return 'F';
   };
 
+  const canEvaluate = isAcadSup || isAdmin;
+
   const handleSave = async () => {
+    if (!canEvaluate) return; // students/work supervisors can't create or edit evaluations
     setSaving(true);
     setErrors({});
     try {
@@ -125,6 +133,7 @@ export default function Evaluations() {
   };
 
   const handleDelete = async id => {
+    if (!canEvaluate) return;
     if (!window.confirm('Delete this evaluation?')) return;
     await api.delete(`/evaluations/${id}/`);
     load();
@@ -143,15 +152,19 @@ export default function Evaluations() {
               : 'View your evaluation results and final grades'}
           </p>
         </div>
-        {(isAcadSup || isAdmin) && (
-          <button className="btn btn-primary" onClick={openCreate}>
+        {canEvaluate && (
+          <button
+            className="btn btn-primary"
+            onClick={openCreate}
+            disabled={placementOptions.length === 0}
+            title={placementOptions.length === 0 ? 'No placements available to evaluate' : undefined}
+          >
             + New evaluation
           </button>
         )}
       </div>
 
-      {/* Scoring Formula Info */}
-      {(isAcadSup || isAdmin) && (
+      {canEvaluate && (
         <div className="alert alert-info" style={{ marginBottom: 20 }}>
           <strong>Scoring formula:</strong> Attendance & Punctuality (40%) + Technical Competence (30%) + Quality of Work (30%)
         </div>
@@ -167,7 +180,7 @@ export default function Evaluations() {
                 ? 'Create an evaluation for a student placement.'
                 : 'Your evaluation will appear here once submitted by your supervisor.'
             }
-            action={isAcadSup && <button className="btn btn-primary" onClick={openCreate}>New evaluation</button>}
+            action={canEvaluate && placementOptions.length > 0 && <button className="btn btn-primary" onClick={openCreate}>New evaluation</button>}
           />
         </div>
       ) : (
@@ -193,31 +206,21 @@ export default function Evaluations() {
                   return (
                     <tr key={ev.id}>
                       <td><strong>{ev.student_name}</strong></td>
+                      <td><ScoreBar value={ev.attendance_punctuality} color="var(--primary)" /></td>
+                      <td><ScoreBar value={ev.technical_competence} color="var(--accent)" /></td>
+                      <td><ScoreBar value={ev.quality_of_work} color="#BA7517" /></td>
                       <td>
-                        <ScoreBar value={ev.attendance_punctuality} color="var(--primary)" />
-                      </td>
-                      <td>
-                        <ScoreBar value={ev.technical_competence} color="var(--accent)" />
-                      </td>
-                      <td>
-                        <ScoreBar value={ev.quality_of_work} color="#BA7517" />
-                      </td>
-                      <td>
-                        <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>
-                          {score.toFixed(1)}
-                        </span>
+                        <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>{score.toFixed(1)}</span>
                         <span style={{ fontSize: 11, color: 'var(--text-hint)' }}>/100</span>
                       </td>
-                      <td>
-                        <span className={`badge badge-${grade}`}>{grade}</span>
-                      </td>
+                      <td><span className={`badge badge-${grade}`}>{grade}</span></td>
                       <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                         {ev.date_evaluated ? new Date(ev.date_evaluated).toLocaleDateString() : '—'}
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button className="btn btn-secondary btn-sm" onClick={() => openView(ev)}>View</button>
-                          {(isAcadSup || isAdmin) && (
+                          {canEvaluate && (
                             <>
                               <button className="btn btn-secondary btn-sm" onClick={() => openEdit(ev)}>Edit</button>
                               <button className="btn btn-danger btn-sm" onClick={() => handleDelete(ev.id)}>Delete</button>
@@ -234,7 +237,6 @@ export default function Evaluations() {
         </div>
       )}
 
-      {/* View Modal */}
       {modal === 'view' && selected && (
         <Modal title="Evaluation details" onClose={() => setModal(null)}>
           {(() => {
@@ -247,7 +249,6 @@ export default function Evaluations() {
                   <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8 }}>Total weighted score</div>
                   <span className={`badge badge-${grade}`} style={{ fontSize: 16, padding: '6px 20px' }}>{grade}</span>
                 </div>
-
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 10 }}>Score breakdown</div>
                   <div style={{ display: 'grid', gap: 12 }}>
@@ -266,7 +267,6 @@ export default function Evaluations() {
                     ))}
                   </div>
                 </div>
-
                 {selected.supervisor_comments && (
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 6 }}>Comments</div>
@@ -281,7 +281,6 @@ export default function Evaluations() {
         </Modal>
       )}
 
-      {/* Create / Edit Modal */}
       {(modal === 'create' || modal === 'edit') && (
         <Modal
           title={modal === 'create' ? 'New evaluation' : 'Edit evaluation'}
@@ -300,24 +299,25 @@ export default function Evaluations() {
 
           <div className="form-group">
             <label className="form-label">Student placement <span className="req">*</span></label>
-            <select
-              name="placement"
-              className="form-control"
-              value={form.placement}
-              onChange={handleChange}
-              disabled={modal === 'edit'}
-            >
+            <select name="placement" className="form-control" value={form.placement} onChange={handleChange} disabled={modal === 'edit'}>
               <option value="">— Select placement —</option>
-              {placements.map(p => (
-                <option key={p.id} value={p.id}>
-                  {p.student_name} — {p.organization_name}
-                </option>
+              {modal === 'edit' && selected && (
+                <option value={selected.placement}>{selected.student_name} — {selected.organization_name || ''}</option>
+              )}
+              {placementOptions.map(p => (
+                <option key={p.id} value={p.id}>{p.student_name} — {p.organization_name}</option>
               ))}
             </select>
             {errors.placement && <div className="form-error">{errors.placement}</div>}
+            {modal === 'create' && placementOptions.length === 0 && (
+              <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 6 }}>
+                {isAcadSup
+                  ? 'No placements awaiting evaluation. You can only evaluate students assigned to you as academic supervisor.'
+                  : 'No placements available for evaluation.'}
+              </div>
+            )}
           </div>
 
-          {/* Score inputs */}
           {[
             { name: 'attendance_punctuality', label: 'Attendance & Punctuality', weight: '40%', color: 'var(--primary)' },
             { name: 'technical_competence', label: 'Technical Competence', weight: '30%', color: 'var(--accent)' },
@@ -329,25 +329,10 @@ export default function Evaluations() {
                 <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: 6 }}>({field.weight}) — 0 to 100</span>
               </label>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <input
-                  type="number"
-                  name={field.name}
-                  className="form-control"
-                  min="0"
-                  max="100"
-                  value={form[field.name]}
-                  onChange={handleChange}
-                  style={{ maxWidth: 90 }}
-                />
+                <input type="number" name={field.name} className="form-control" min="0" max="100" value={form[field.name]} onChange={handleChange} style={{ maxWidth: 90 }} />
                 <div style={{ flex: 1 }}>
                   <div className="progress-bar">
-                    <div
-                      className="progress-bar-fill"
-                      style={{
-                        width: `${Math.min(form[field.name] || 0, 100)}%`,
-                        background: field.color,
-                      }}
-                    />
+                    <div className="progress-bar-fill" style={{ width: `${Math.min(form[field.name] || 0, 100)}%`, background: field.color }} />
                   </div>
                 </div>
               </div>
@@ -355,25 +340,11 @@ export default function Evaluations() {
             </div>
           ))}
 
-          {/* Live score preview */}
           {(form.attendance_punctuality || form.technical_competence || form.quality_of_work) && (
-            <div style={{
-              background: 'var(--primary-light)',
-              borderRadius: 10,
-              padding: '14px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 16,
-              border: '1px solid rgba(24,95,165,0.2)',
-            }}>
-              <span style={{ fontSize: 13.5, color: 'var(--primary-dark)' }}>
-                Computed total score
-              </span>
+            <div style={{ background: 'var(--primary-light)', borderRadius: 10, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, border: '1px solid rgba(24,95,165,0.2)' }}>
+              <span style={{ fontSize: 13.5, color: 'var(--primary-dark)' }}>Computed total score</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--primary)' }}>
-                  {previewScore()}
-                </span>
+                <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--primary)' }}>{previewScore()}</span>
                 <span className={`badge badge-${previewGrade()}`}>{previewGrade()}</span>
               </div>
             </div>
@@ -381,14 +352,7 @@ export default function Evaluations() {
 
           <div className="form-group">
             <label className="form-label">Comments</label>
-            <textarea
-              name="supervisor_comments"
-              className="form-control"
-              rows={3}
-              placeholder="Optional feedback for the student…"
-              value={form.supervisor_comments}
-              onChange={handleChange}
-            />
+            <textarea name="supervisor_comments" className="form-control" rows={3} placeholder="Optional feedback for the student…" value={form.supervisor_comments} onChange={handleChange} />
           </div>
         </Modal>
       )}

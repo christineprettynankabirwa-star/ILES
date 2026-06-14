@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import { useDepartments } from '../context/DepartmentsContext';
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -9,15 +9,13 @@ export default function Register() {
     role: 'student', department: '', student_number: '',
     staff_number: '', phone_number: '', password: '', password2: '',
   });
-  const [departments, setDepartments] = useState([]);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
+  const { departments, ensureLoaded } = useDepartments();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    api.get('/departments/').then(r => setDepartments(r.data)).catch(() => {});
-  }, []);
+  useEffect(() => { ensureLoaded(); }, [ensureLoaded]);
 
   const handleChange = e => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));

@@ -1,94 +1,114 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import { DepartmentsProvider } from './context/DepartmentsContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
 // Public pages
-import Home from './pages/Home';
+import Home from './pages/LandingPage';
 import Login from './pages/Login';
-import Register from './pages/Register';
+import Register from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 
 // Protected pages
-import Dashboard from './pages/Dashboard';
+import Dashboard from './components/Dashboard';
 import Placements from './pages/Placements';
 import WeeklyLogs from './pages/WeeklyLogs';
 import Evaluations from './pages/Evaluations';
 import Users from './pages/Users';
 import Departments from './pages/Departments';
 import Criteria from './pages/Criteria';
-import Profile from './pages/Profile';
+import Profile from './pages/Profiles';
 
 import './index.css';
+import './toast.css';
 
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+      <ToastProvider>
+        <BrowserRouter>
+          <Routes>
 
-          {/* ── Public routes ── */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-
-          {/* ── Protected routes (all roles) ── */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/placements" element={<Placements />} />
-            <Route path="/weekly-logs" element={<WeeklyLogs />} />
-            <Route path="/profile" element={<Profile />} />
-
-            {/* Students + Acad Supervisor + Admin */}
+            {/* ── Public routes ── */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
             <Route
-              path="/evaluations"
+              path="/register"
               element={
-                <ProtectedRoute roles={['student', 'acad_supervisor', 'admin']}>
-                  <Evaluations />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Admin only */}
-            <Route
-              path="/users"
-              element={
-                <ProtectedRoute roles={['admin']}>
-                  <Users />
-                </ProtectedRoute>
+                <DepartmentsProvider>
+                  <Register />
+                </DepartmentsProvider>
               }
             />
             <Route
-              path="/departments"
+              path="/signup"
               element={
-                <ProtectedRoute roles={['admin']}>
-                  <Departments />
-                </ProtectedRoute>
+                <DepartmentsProvider>
+                  <Register />
+                </DepartmentsProvider>
               }
             />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+
+            {/* ── Protected routes (all roles) ── */}
             <Route
-              path="/criteria"
               element={
-                <ProtectedRoute roles={['admin']}>
-                  <Criteria />
+                <ProtectedRoute>
+                  <DepartmentsProvider>
+                    <Layout />
+                  </DepartmentsProvider>
                 </ProtectedRoute>
               }
-            />
-          </Route>
+            >
+              <Route path="/app/dashboard" element={<Dashboard />} />
+              <Route path="/app/placements" element={<Placements />} />
+              <Route path="/app/weekly-logs" element={<WeeklyLogs />} />
+              <Route path="/app/profile" element={<Profile />} />
 
-          {/* Catch-all redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+              <Route
+                path="/app/evaluations"
+                element={
+                  <ProtectedRoute roles={['student', 'acad_supervisor', 'admin']}>
+                    <Evaluations />
+                  </ProtectedRoute>
+                }
+              />
 
-        </Routes>
-      </BrowserRouter>
+              <Route
+                path="/app/users"
+                element={
+                  <ProtectedRoute roles={['admin']}>
+                    <Users />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/app/departments"
+                element={
+                  <ProtectedRoute roles={['admin']}>
+                    <Departments />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/app/criteria"
+                element={
+                  <ProtectedRoute roles={['admin']}>
+                    <Criteria />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
+
+            {/* Catch-all redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+
+          </Routes>
+        </BrowserRouter>
+      </ToastProvider>
     </AuthProvider>
   );
 }

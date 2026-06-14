@@ -3,14 +3,14 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 
 const pageTitles = {
-  '/dashboard': 'Dashboard',
-  '/placements': 'Internship Placements',
-  '/weekly-logs': 'Weekly Logbook',
-  '/evaluations': 'Evaluations',
-  '/users': 'User Management',
-  '/departments': 'Departments',
-  '/criteria': 'Evaluation Criteria',
-  '/profile': 'My Profile',
+  '/app/dashboard': 'Dashboard',
+  '/app/placements': 'Internship Placements',
+  '/app/weekly-logs': 'Weekly Logbook',
+  '/app/evaluations': 'Evaluations',
+  '/app/users': 'User Management',
+  '/app/departments': 'Departments',
+  '/app/criteria': 'Evaluation Criteria',
+  '/app/profile': 'My Profile',
 };
 
 export default function Layout() {

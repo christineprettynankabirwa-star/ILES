@@ -1,157 +1,220 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend,
+} from 'recharts';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { Spinner } from '../components/UI';
 
-export default function Register() {
-  const [form, setForm] = useState({
-    username: '', email: '', first_name: '', last_name: '',
-    role: 'student', department: '', student_number: '',
-    staff_number: '', phone_number: '', password: '', password2: '',
-  });
-  const [departments, setDepartments] = useState([]);
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
-  const navigate = useNavigate();
+const GRADE_COLORS = { A: '#3B6D11', B: '#0F6E56', C: '#BA7517', D: '#854F0B', F: '#A32D2D', '': '#888780' };
+
+export default function Dashboard() {
+  const { user } = useAuth();
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [range, setRange] = useState('30d');
 
   useEffect(() => {
-    api.get('/departments/').then(r => setDepartments(r.data)).catch(() => {});
-  }, []);
-
-  const handleChange = e => {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
-    setErrors(prev => ({ ...prev, [e.target.name]: '' }));
-  };
-
-  const handleSubmit = async e => {
-    e.preventDefault();
-    setErrors({});
     setLoading(true);
-    try {
-      const payload = { ...form };
-      if (!payload.department) delete payload.department;
-      if (!payload.student_number) delete payload.student_number;
-      if (!payload.staff_number) delete payload.staff_number;
-      await register(payload);
-      navigate('/login', { state: { registered: true } });
-    } catch (err) {
-      if (err.response?.data) setErrors(err.response.data);
-      else setErrors({ general: 'Registration failed. Please try again.' });
-    } finally {
-      setLoading(false);
-    }
-  };
+    api.get(`/dashboard-stats/?range=${range}`)
+      .then(r => setStats(r.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [range]);
 
-  const isStudent = form.role === 'student';
-  const isStaff = ['work_supervisor', 'acad_supervisor', 'admin'].includes(form.role);
+  if (loading) return <Spinner />;
+  if (!stats) return <div className="alert alert-error">Failed to load dashboard.</div>;
+
+  const role = user?.role;
+  const progress = stats.student_progress || [];
+  const adminStats = stats.admin_performance;
+  const gradeData = adminStats?.grade_distribution || [];
+
+  const scoreData = progress.map(p => ({
+    name: p.student__username,
+    score: parseFloat(p.total_score) || 0,
+    logs: p.logs_count,
+  }));
 
   return (
-    <div className="auth-page">
-      <div className="auth-card" style={{ maxWidth: 520 }}>
-        <div className="auth-brand">
-          <div className="auth-brand-icon">I</div>
-          <span style={{ fontWeight: 700, fontSize: 17 }}>ILES Portal</span>
+    <div>
+      {/* Header */}
+      <div className="page-header">
+        <div>
+          <h1>
+            {role === 'student' ? 'My Dashboard' :
+             role === 'work_supervisor' ? 'Supervisor Dashboard' :
+             role === 'acad_supervisor' ? 'Academic Dashboard' : 'Admin Dashboard'}
+          </h1>
+          <p>
+            {role === 'student' ? 'Track your internship progress and logs' :
+             role === 'work_supervisor' ? 'Monitor student activity logs' :
+             'Internship management overview'}
+          </p>
         </div>
-        <h1>Create account</h1>
-        <p className="subtitle">Register to access the internship system</p>
-
-        {errors.general && <div className="alert alert-error">{errors.general}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">First name <span className="req">*</span></label>
-              <input name="first_name" className="form-control" value={form.first_name} onChange={handleChange} required />
-              {errors.first_name && <div className="form-error">{errors.first_name}</div>}
-            </div>
-            <div className="form-group">
-              <label className="form-label">Last name <span className="req">*</span></label>
-              <input name="last_name" className="form-control" value={form.last_name} onChange={handleChange} required />
-              {errors.last_name && <div className="form-error">{errors.last_name}</div>}
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Username <span className="req">*</span></label>
-            <input name="username" className="form-control" value={form.username} onChange={handleChange} required />
-            {errors.username && <div className="form-error">{errors.username}</div>}
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Email</label>
-            <input type="email" name="email" className="form-control" value={form.email} onChange={handleChange} />
-            {errors.email && <div className="form-error">{errors.email}</div>}
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Role <span className="req">*</span></label>
-              <select name="role" className="form-control" value={form.role} onChange={handleChange}>
-                <option value="student">Student Intern</option>
-                <option value="work_supervisor">Workplace Supervisor</option>
-                <option value="acad_supervisor">Academic Supervisor</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Department</label>
-              <select name="department" className="form-control" value={form.department} onChange={handleChange}>
-                <option value="">— Select —</option>
-                {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {isStudent && (
-            <div className="form-group">
-              <label className="form-label">Student number</label>
-              <input name="student_number" className="form-control" value={form.student_number} onChange={handleChange} />
-              {errors.student_number && <div className="form-error">{errors.student_number}</div>}
-            </div>
-          )}
-
-          {isStaff && (
-            <div className="form-group">
-              <label className="form-label">Staff number</label>
-              <input name="staff_number" className="form-control" value={form.staff_number} onChange={handleChange} />
-              {errors.staff_number && <div className="form-error">{errors.staff_number}</div>}
-            </div>
-          )}
-
-          <div className="form-group">
-            <label className="form-label">Phone number</label>
-            <input name="phone_number" className="form-control" value={form.phone_number} onChange={handleChange} />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Password <span className="req">*</span></label>
-              <input type="password" name="password" className="form-control" value={form.password} onChange={handleChange} required />
-              {errors.password && <div className="form-error">{errors.password}</div>}
-            </div>
-            <div className="form-group">
-              <label className="form-label">Confirm password <span className="req">*</span></label>
-              <input type="password" name="password2" className="form-control" value={form.password2} onChange={handleChange} required />
-              {errors.password2 && <div className="form-error">{errors.password2}</div>}
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-primary"
-            style={{ width: '100%', justifyContent: 'center', padding: '11px' }}
-            disabled={loading}
-          >
-            {loading ? 'Creating account…' : 'Create account'}
-          </button>
-        </form>
-
-        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 13.5, color: 'var(--text-muted)' }}>
-          Already have an account?{' '}
-          <Link to="/login" style={{ color: 'var(--primary)', fontWeight: 500 }}>Sign in</Link>
-        </p>
+        <select
+          className="filter-select"
+          value={range}
+          onChange={e => setRange(e.target.value)}
+        >
+          <option value="7d">Last 7 days</option>
+          <option value="30d">Last 30 days</option>
+          <option value="90d">Last 90 days</option>
+        </select>
       </div>
+
+      {/* Stat Cards */}
+      <div className="stats-grid">
+        <div className="stat-card accent-blue">
+          <div className="label">Total Placements</div>
+          <div className="value">{progress.length}</div>
+          <div className="sub">Active internships</div>
+        </div>
+        <div className="stat-card accent-amber">
+          <div className="label">Pending Reviews</div>
+          <div className="value">{stats.pending_reviews_count}</div>
+          <div className="sub">Logs awaiting review</div>
+        </div>
+        {role === 'student' && progress[0] && (
+          <>
+            <div className="stat-card accent-green">
+              <div className="label">Logs Submitted</div>
+              <div className="value">{progress[0].logs_count}</div>
+              <div className="sub">Weekly logs filed</div>
+            </div>
+            <div className="stat-card accent-blue">
+              <div className="label">Current Grade</div>
+              <div className="value">{progress[0].final_grade || '—'}</div>
+              <div className="sub">Score: {parseFloat(progress[0].total_score || 0).toFixed(1)}</div>
+            </div>
+          </>
+        )}
+        {adminStats && (
+          <>
+            <div className="stat-card accent-green">
+              <div className="label">Avg Score</div>
+              <div className="value">{adminStats.avg_score ? adminStats.avg_score.toFixed(1) : '—'}</div>
+              <div className="sub">Across all evaluations</div>
+            </div>
+            <div className="stat-card accent-red">
+              <div className="label">Total Evaluations</div>
+              <div className="value">{adminStats.total_evals}</div>
+              <div className="sub">Completed assessments</div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid-2" style={{ gap: 20, marginTop: 4 }}>
+        {/* Student Scores / Logs Chart */}
+        {scoreData.length > 0 && (
+          <div className="card">
+            <div className="card-title">
+              {role === 'student' ? 'My Log Progress' : 'Student Log Activity'}
+            </div>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={scoreData.slice(0, 10)} barSize={18}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                <YAxis tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                <Tooltip contentStyle={{ fontSize: 12 }} />
+                <Bar dataKey="logs" fill="#185FA5" name="Logs" radius={[3,3,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Grade Distribution (admin/supervisor) */}
+        {gradeData.length > 0 ? (
+          <div className="card">
+            <div className="card-title">Grade distribution</div>
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={gradeData}
+                  dataKey="count"
+                  nameKey="final_grade"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label={({ final_grade, count }) => `${final_grade || 'N/A'}: ${count}`}
+                  labelLine={false}
+                >
+                  {gradeData.map((entry, i) => (
+                    <Cell key={i} fill={GRADE_COLORS[entry.final_grade] || '#888'} />
+                  ))}
+                </Pie>
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="card">
+            <div className="card-title">Score comparison</div>
+            {scoreData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={scoreData.slice(0, 10)} barSize={18}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                  <Tooltip contentStyle={{ fontSize: 12 }} />
+                  <Bar dataKey="score" fill="#0F6E56" name="Score" radius={[3,3,0,0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="empty-state" style={{ padding: '40px 0' }}>
+                <p>No score data yet</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Student Progress Table */}
+      {progress.length > 0 && role !== 'student' && (
+        <div className="card mt-24">
+          <div className="card-title">Student progress</div>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Logs Filed</th>
+                  <th>Score</th>
+                  <th>Grade</th>
+                  <th>Progress</th>
+                </tr>
+              </thead>
+              <tbody>
+                {progress.map(p => {
+                  const score = parseFloat(p.total_score) || 0;
+                  return (
+                    <tr key={p.student__id}>
+                      <td><strong>{p.student__username}</strong></td>
+                      <td>{p.logs_count}</td>
+                      <td>{score.toFixed(1)}</td>
+                      <td>
+                        {p.final_grade
+                          ? <span className={`badge badge-${p.final_grade}`}>{p.final_grade}</span>
+                          : <span className="text-muted">—</span>}
+                      </td>
+                      <td style={{ minWidth: 120 }}>
+                        <div className="progress-bar">
+                          <div className="progress-bar-fill" style={{ width: `${score}%` }} />
+                        </div>
+                        <span style={{ fontSize: 11, color: 'var(--text-hint)' }}>{score.toFixed(0)}%</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

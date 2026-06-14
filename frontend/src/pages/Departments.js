@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import api from '../services/api';
+import React, { useState, useEffect } from 'react';
 import { Spinner, EmptyState, Modal } from '../components/UI';
+import { useDepartments } from '../context/DepartmentsContext';
+import { useToast } from '../context/ToastContext';
+import api from '../services/api';
 
 const emptyForm = { name: '', code: '' };
 
 export default function Departments() {
-  const [departments, setDepartments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { departments, loading, refresh, ensureLoaded } = useDepartments();
+  const { notify, confirm } = useToast();
+
   const [modal, setModal] = useState(null);
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -14,16 +17,7 @@ export default function Departments() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await api.get('/departments/');
-      setDepartments(res.data);
-    } catch {}
-    setLoading(false);
-  }, []);
-
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { ensureLoaded(); }, [ensureLoaded]);
 
   const openCreate = () => { setForm(emptyForm); setErrors({}); setModal('create'); };
   const openEdit = d => { setSelected(d); setForm({ name: d.name, code: d.code }); setErrors({}); setModal('edit'); };
@@ -39,25 +33,33 @@ export default function Departments() {
     try {
       if (modal === 'create') {
         await api.post('/departments/', form);
+        notify('success', `Department "${form.name}" created.`);
       } else {
         await api.patch(`/departments/${selected.id}/`, form);
+        notify('success', `Department "${form.name}" updated.`);
       }
       setModal(null);
-      load();
+      refresh();
     } catch (err) {
       if (err.response?.data) setErrors(err.response.data);
+      else notify('error', 'Something went wrong while saving. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async id => {
-    if (!window.confirm('Delete this department? This may affect assigned users.')) return;
+  const handleDelete = async d => {
+    const ok = await confirm(
+      `Delete "${d.name}" (${d.code})? This may affect assigned users.`,
+      { title: 'Delete department', confirmLabel: 'Delete', danger: true }
+    );
+    if (!ok) return;
     try {
-      await api.delete(`/departments/${id}/`);
-      load();
+      await api.delete(`/departments/${d.id}/`);
+      notify('success', `Department "${d.name}" deleted.`);
+      refresh();
     } catch {
-      alert('Could not delete department — it may still have users assigned.');
+      notify('error', 'Could not delete department — it may still have users assigned.');
     }
   };
 
@@ -66,7 +68,7 @@ export default function Departments() {
     d.code.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) return <Spinner />;
+  if (loading && departments.length === 0) return <Spinner />;
 
   return (
     <div>
@@ -142,7 +144,7 @@ export default function Departments() {
                 <button className="btn btn-secondary btn-sm" onClick={() => openEdit(d)} style={{ flex: 1 }}>
                   Edit
                 </button>
-                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(d.id)}>
+                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(d)}>
                   Delete
                 </button>
               </div>

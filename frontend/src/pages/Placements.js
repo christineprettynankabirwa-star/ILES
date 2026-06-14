@@ -15,7 +15,8 @@ export default function Placements() {
   const [placements, setPlacements] = useState([]);
   const [users, setUsers] = useState({ students: [], acad: [], work: [] });
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState(null); // null | 'create' | 'edit' | 'view'
+  const [loadError, setLoadError] = useState('');          // FIX: surface load errors
+  const [modal, setModal] = useState(null);
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
@@ -23,16 +24,26 @@ export default function Placements() {
 
   const isAdmin = user?.role === 'admin';
   const isStudent = user?.role === 'student';
+  const isWorkSup = user?.role === 'work_supervisor';
+  const isAcadSup = user?.role === 'acad_supervisor';
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError('');
     try {
+      // FIX: supervisors also need /users/ to show supervisor names on their view
+      const fetchUsers = (isAdmin || isWorkSup || isAcadSup)
+        ? api.get('/users/')
+        : Promise.resolve({ data: [] });
+
       const [pRes, uRes] = await Promise.all([
         api.get('/placements/'),
-        isAdmin ? api.get('/users/') : Promise.resolve({ data: [] }),
+        fetchUsers,
       ]);
+
       setPlacements(pRes.data);
-      if (isAdmin) {
+
+      if (isAdmin || isWorkSup || isAcadSup) {
         const all = uRes.data;
         setUsers({
           students: all.filter(u => u.role === 'student'),
@@ -40,26 +51,43 @@ export default function Placements() {
           work: all.filter(u => u.role === 'work_supervisor'),
         });
       }
-    } catch {}
+    } catch (err) {
+      // FIX: was silently swallowing all errors — now surfaces them
+      console.error('Placements load error:', err.response?.status, err.response?.data);
+      const status = err.response?.status;
+      if (status === 401) setLoadError('Session expired — please log in again.');
+      else if (status === 403) setLoadError('You do not have permission to view placements.');
+      else setLoadError('Failed to load placements. Check your connection and try again.');
+    }
     setLoading(false);
-  }, [isAdmin]);
+  }, [isAdmin, isWorkSup, isAcadSup]);
 
   useEffect(() => { load(); }, [load]);
 
   const openCreate = () => { setForm(emptyForm); setErrors({}); setModal('create'); };
+
   const openEdit = p => {
     setSelected(p);
     setForm({
-      student: p.student || '', academic_supervisor: p.academic_supervisor || '',
+      student: p.student || '',
+      academic_supervisor: p.academic_supervisor || '',
       workplace_supervisor: p.workplace_supervisor || '',
-      organization_name: p.organization_name || '', registration_number: p.registration_number || '',
-      position: p.position || '', location: p.location || '', duration: p.duration || '',
-      stipend: p.stipend || '', description: p.description || '', course: p.course || '',
-      start_date: p.start_date || '', end_date: p.end_date || '', is_active: p.is_active,
+      organization_name: p.organization_name || '',
+      registration_number: p.registration_number || '',
+      position: p.position || '',
+      location: p.location || '',
+      duration: p.duration || '',
+      stipend: p.stipend || '',
+      description: p.description || '',
+      course: p.course || '',
+      start_date: p.start_date || '',
+      end_date: p.end_date || '',
+      is_active: p.is_active,
     });
     setErrors({});
     setModal('edit');
   };
+
   const openView = p => { setSelected(p); setModal('view'); };
 
   const handleChange = e => {
@@ -75,8 +103,13 @@ export default function Placements() {
       const payload = { ...form };
       if (!payload.stipend) delete payload.stipend;
       if (!payload.description) delete payload.description;
+      // FIX: keep supervisor fields even when empty string so the
+      // backend can clear them — only delete if truly not provided
       if (!payload.academic_supervisor) delete payload.academic_supervisor;
       if (!payload.workplace_supervisor) delete payload.workplace_supervisor;
+      // Non-admins never see the Student field; strip it so
+      // perform_create() defaults it to request.user
+      if (!payload.student) delete payload.student;
 
       if (modal === 'create') {
         await api.post('/placements/', payload);
@@ -91,6 +124,8 @@ export default function Placements() {
         if (typeof d === 'string') setErrors({ general: d });
         else if (Array.isArray(d)) setErrors({ general: d.join(' ') });
         else setErrors(d);
+      } else {
+        setErrors({ general: 'Something went wrong. Please try again.' });
       }
     } finally {
       setSaving(false);
@@ -99,18 +134,52 @@ export default function Placements() {
 
   const handleDelete = async id => {
     if (!window.confirm('Delete this placement?')) return;
-    await api.delete(`/placements/${id}/`);
-    load();
+    try {
+      await api.delete(`/placements/${id}/`);
+      load();
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Could not delete placement.');
+    }
   };
 
   if (loading) return <Spinner />;
+
+  // FIX: show a real error message instead of blank screen
+  if (loadError) {
+    return (
+      <div>
+        <div className="page-header">
+          <div><h1>Internship placements</h1></div>
+        </div>
+        <div className="alert alert-error">
+          {loadError}{' '}
+          <button className="btn btn-secondary btn-sm" onClick={load} style={{ marginLeft: 12 }}>
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // FIX: supervisors see a helpful message explaining why the list may be empty
+  const emptyDescription = () => {
+    if (isStudent) return 'Register your internship placement to get started.';
+    if (isWorkSup) return 'No students have been assigned to you as workplace supervisor yet. Ask your administrator to link student placements to your account.';
+    if (isAcadSup) return 'No students have been assigned to you as academic supervisor yet. Ask your administrator to link student placements to your account.';
+    return 'No internship placements found. Create the first one using the button above.';
+  };
 
   return (
     <div>
       <div className="page-header">
         <div>
           <h1>Internship placements</h1>
-          <p>{isStudent ? 'Your registered internship placement(s)' : 'Manage student internship placements'}</p>
+          <p>
+            {isStudent ? 'Your registered internship placement(s)' :
+             isWorkSup ? 'Students under your workplace supervision' :
+             isAcadSup ? 'Students under your academic supervision' :
+             'Manage student internship placements'}
+          </p>
         </div>
         {(isAdmin || isStudent) && (
           <button className="btn btn-primary" onClick={openCreate}>
@@ -119,13 +188,32 @@ export default function Placements() {
         )}
       </div>
 
+      {/* FIX: warn admin when no supervisor users exist so they know dropdowns will be empty */}
+      {isAdmin && users.work.length === 0 && (
+        <div className="alert alert-info" style={{ marginBottom: 16 }}>
+          <strong>No workplace supervisors found.</strong> Register at least one user with the
+          role <em>work_supervisor</em> before creating placements, so you can assign them.
+        </div>
+      )}
+      {isAdmin && users.acad.length === 0 && (
+        <div className="alert alert-info" style={{ marginBottom: 16 }}>
+          <strong>No academic supervisors found.</strong> Register at least one user with the
+          role <em>acad_supervisor</em> before creating placements, so you can assign them.
+        </div>
+      )}
+
       {placements.length === 0 ? (
         <div className="card">
           <EmptyState
             icon="🏢"
             title="No placements yet"
-            description={isStudent ? 'Register your internship placement to get started.' : 'No internship placements found.'}
-            action={isAdmin && <button className="btn btn-primary" onClick={openCreate}>Add placement</button>}
+            description={emptyDescription()}
+            action={
+              (isAdmin || isStudent) &&
+              <button className="btn btn-primary" onClick={openCreate}>
+                {isStudent ? 'Register placement' : 'Add placement'}
+              </button>
+            }
           />
         </div>
       ) : (
@@ -137,6 +225,9 @@ export default function Placements() {
                   <th>Student</th>
                   <th>Organisation</th>
                   <th>Position</th>
+                  {/* FIX: show supervisor columns so supervisors can confirm their assignment */}
+                  {(isAdmin || isAcadSup) && <th>Academic supervisor</th>}
+                  {(isAdmin || isWorkSup) && <th>Workplace supervisor</th>}
                   <th>Dates</th>
                   <th>Status</th>
                   <th>Grade</th>
@@ -155,6 +246,16 @@ export default function Placements() {
                       <div className="text-muted" style={{ fontSize: 12 }}>{p.location}</div>
                     </td>
                     <td>{p.position}</td>
+                    {(isAdmin || isAcadSup) && (
+                      <td style={{ fontSize: 13 }}>
+                        {p.academic_supervisor_name || <span className="text-muted">—</span>}
+                      </td>
+                    )}
+                    {(isAdmin || isWorkSup) && (
+                      <td style={{ fontSize: 13 }}>
+                        {p.workplace_supervisor_name || <span className="text-muted">—</span>}
+                      </td>
+                    )}
                     <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                       {p.start_date} → {p.end_date}
                     </td>
@@ -224,33 +325,65 @@ export default function Placements() {
           {errors.non_field_errors && <div className="alert alert-error">{errors.non_field_errors}</div>}
 
           {isAdmin && (
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Student <span className="req">*</span></label>
-                <select name="student" className="form-control" value={form.student} onChange={handleChange}>
-                  <option value="">— Select —</option>
-                  {users.students.map(s => <option key={s.id} value={s.id}>{s.username}</option>)}
-                </select>
-                {errors.student && <div className="form-error">{errors.student}</div>}
-              </div>
-              <div className="form-group">
-                <label className="form-label">Academic supervisor</label>
-                <select name="academic_supervisor" className="form-control" value={form.academic_supervisor} onChange={handleChange}>
-                  <option value="">— Select —</option>
-                  {users.acad.map(s => <option key={s.id} value={s.id}>{s.username}</option>)}
-                </select>
-              </div>
-            </div>
-          )}
+            <>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Student <span className="req">*</span></label>
+                  <select name="student" className="form-control" value={form.student} onChange={handleChange}>
+                    <option value="">— Select —</option>
+                    {users.students.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.first_name && s.last_name ? `${s.first_name} ${s.last_name}` : s.username}
+                        {s.student_number ? ` (${s.student_number})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.student && <div className="form-error">{errors.student}</div>}
+                  {/* FIX: helpful hint if no students registered yet */}
+                  {users.students.length === 0 && (
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
+                      No student accounts found. Register students first.
+                    </div>
+                  )}
+                </div>
 
-          {isAdmin && (
-            <div className="form-group">
-              <label className="form-label">Workplace supervisor</label>
-              <select name="workplace_supervisor" className="form-control" value={form.workplace_supervisor} onChange={handleChange}>
-                <option value="">— Select —</option>
-                {users.work.map(s => <option key={s.id} value={s.id}>{s.username}</option>)}
-              </select>
-            </div>
+                <div className="form-group">
+                  <label className="form-label">Academic supervisor</label>
+                  <select name="academic_supervisor" className="form-control" value={form.academic_supervisor} onChange={handleChange}>
+                    <option value="">— Select —</option>
+                    {users.acad.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.first_name && s.last_name ? `${s.first_name} ${s.last_name}` : s.username}
+                      </option>
+                    ))}
+                  </select>
+                  {/* FIX: warn if dropdown is empty */}
+                  {users.acad.length === 0 && (
+                    <div style={{ fontSize: 12, color: 'var(--warning)', marginTop: 4 }}>
+                      No academic supervisors found — register one first.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Workplace supervisor</label>
+                <select name="workplace_supervisor" className="form-control" value={form.workplace_supervisor} onChange={handleChange}>
+                  <option value="">— Select —</option>
+                  {users.work.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.first_name && s.last_name ? `${s.first_name} ${s.last_name}` : s.username}
+                    </option>
+                  ))}
+                </select>
+                {/* FIX: warn if dropdown is empty */}
+                {users.work.length === 0 && (
+                  <div style={{ fontSize: 12, color: 'var(--warning)', marginTop: 4 }}>
+                    No workplace supervisors found — register one first.
+                  </div>
+                )}
+              </div>
+            </>
           )}
 
           <div className="form-row">
@@ -260,7 +393,7 @@ export default function Placements() {
               {errors.organization_name && <div className="form-error">{errors.organization_name}</div>}
             </div>
             <div className="form-group">
-              <label className="form-label">Reg. number <span className="req">*</span></label>
+              <label className="form-label">Reg. number</label>
               <input name="registration_number" className="form-control" value={form.registration_number} onChange={handleChange} />
             </div>
           </div>
@@ -269,10 +402,12 @@ export default function Placements() {
             <div className="form-group">
               <label className="form-label">Position <span className="req">*</span></label>
               <input name="position" className="form-control" value={form.position} onChange={handleChange} />
+              {errors.position && <div className="form-error">{errors.position}</div>}
             </div>
             <div className="form-group">
               <label className="form-label">Location <span className="req">*</span></label>
               <input name="location" className="form-control" value={form.location} onChange={handleChange} />
+              {errors.location && <div className="form-error">{errors.location}</div>}
             </div>
           </div>
 
@@ -280,10 +415,12 @@ export default function Placements() {
             <div className="form-group">
               <label className="form-label">Course <span className="req">*</span></label>
               <input name="course" className="form-control" value={form.course} onChange={handleChange} />
+              {errors.course && <div className="form-error">{errors.course}</div>}
             </div>
             <div className="form-group">
               <label className="form-label">Duration <span className="req">*</span></label>
               <input name="duration" className="form-control" placeholder="e.g. 3 months" value={form.duration} onChange={handleChange} />
+              {errors.duration && <div className="form-error">{errors.duration}</div>}
             </div>
           </div>
 

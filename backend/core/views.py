@@ -3,13 +3,14 @@ from rest_framework import serializers
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.conf import settings
-from django.db.models import Count, Avg, Q
+from django.db.models import Count, Avg
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from datetime import timedelta
 from rest_framework import viewsets, generics, status
 from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -34,7 +35,9 @@ from .permissions import (
 
 User = get_user_model()
 
+
 # AUTH
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
@@ -68,7 +71,6 @@ def signup_view(request):
     serializer = UserRegistrationSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     user = serializer.save()
     refresh = RefreshToken.for_user(user)
     return Response(
@@ -83,7 +85,6 @@ def signup_view(request):
 
 
 class LogoutView(generics.GenericAPIView):
-    """Blacklist the refresh token on logout (Week 4)."""
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -99,6 +100,7 @@ class LogoutView(generics.GenericAPIView):
             return Response({"message": "Logged out successfully."}, status=200)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
+
 
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
@@ -132,6 +134,7 @@ class ForgotPasswordView(APIView):
             status=status.HTTP_200_OK,
         )
 
+
 # USER PROFILE
 
 @api_view(['GET', 'PATCH'])
@@ -146,7 +149,8 @@ def user_profile(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return Response(CustomUserSerializer(user).data)
 
-# USER MANAGEMENT  (Week 4)
+
+# USER MANAGEMENT
 
 class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
@@ -154,10 +158,10 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
-        """Admins can write; others can only read their own data."""
         if self.action in ('list', 'retrieve'):
             return [IsAuthenticated()]
         return [IsAdminUser()]
+
 
 # DEPARTMENT
 
@@ -166,7 +170,8 @@ class DepartmentListCreateAPIView(ListCreateAPIView):
     serializer_class = DepartmentSerializer
     permission_classes = [IsAdminOrReadOnly]
 
-# INTERNSHIP PLACEMENT 
+
+# INTERNSHIP PLACEMENT
 
 class InternshipPlacementViewSet(viewsets.ModelViewSet):
     serializer_class = InternshipPlacementSerializer
@@ -186,13 +191,29 @@ class InternshipPlacementViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if user.role == 'student':
             serializer.save(student=user)
-        else:
+        elif user.role == 'admin':
             serializer.save()
+        else:
+            raise PermissionDenied("Only students and admins can create placements.")
 
-# WEEKLY LOG 
+    def perform_update(self, serializer):
+        user = self.request.user
+        instance = self.get_object()
+        if user.role == 'student' and instance.student != user:
+            raise PermissionDenied("You can only edit your own placement.")
+        if user.role not in ('admin', 'student'):
+            raise PermissionDenied("You do not have permission to edit placements.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if self.request.user.role != 'admin':
+            raise PermissionDenied("Only admins can delete placements.")
+        instance.delete()
+
+
+# WEEKLY LOG
 
 class WeeklyLogListCreateAPIView(ListCreateAPIView):
-    """Simple list/create (kept for backward compat)."""
     serializer_class = WeeklyLogSerializer
     permission_classes = [IsAuthenticated]
 
@@ -201,6 +222,7 @@ class WeeklyLogListCreateAPIView(ListCreateAPIView):
         if user.role == 'student':
             return WeeklyLog.objects.filter(student=user)
         return WeeklyLog.objects.all()
+
 
 class WeeklyLogViewSet(viewsets.ModelViewSet):
     serializer_class = WeeklyLogSerializer
@@ -211,18 +233,14 @@ class WeeklyLogViewSet(viewsets.ModelViewSet):
         if user.role == 'student':
             return WeeklyLog.objects.filter(student=user)
         if user.role == 'work_supervisor':
-            return WeeklyLog.objects.filter(
-                placement__workplace_supervisor=user
-            )
+            return WeeklyLog.objects.filter(placement__workplace_supervisor=user)
         if user.role == 'acad_supervisor':
-            return WeeklyLog.objects.filter(
-                placement__academic_supervisor=user
-            )
+            return WeeklyLog.objects.filter(placement__academic_supervisor=user)
         return WeeklyLog.objects.all()
 
     def perform_create(self, serializer):
         if self.request.user.role != 'student':
-            raise serializers.ValidationError("Only students can create weekly logs.")
+            raise PermissionDenied("Only students can create weekly logs.")
         instance = serializer.save(student=self.request.user)
         instance._changed_by = self.request.user
 
@@ -240,9 +258,8 @@ class WeeklyLogViewSet(viewsets.ModelViewSet):
                 {"error": "Only submitted logs can be reviewed."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        comments = request.data.get('supervisor_comments', '')
         log._changed_by = request.user
-        log.supervisor_comments = comments
+        log.supervisor_comments = request.data.get('supervisor_comments', '')
         log.reviewed_by = request.user
         log.reviewed_at = timezone.now()
         log.status = 'reviewed'
@@ -263,6 +280,7 @@ class WeeklyLogViewSet(viewsets.ModelViewSet):
         log.status = 'approved'
         log.save()
         return Response(WeeklyLogSerializer(log).data)
+
 
 # EVALUATION
 
@@ -286,14 +304,13 @@ class EvaluationViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         if self.request.user.role != 'acad_supervisor':
-            from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only academic supervisors can create evaluations.")
         serializer.save(academic_supervisor=self.request.user)
 
-# DASHBOARD 
+
+# DASHBOARD
 
 class DashboardStatsView(APIView):
-
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -318,7 +335,10 @@ class DashboardStatsView(APIView):
 
         student_progress = list(
             placements.annotate(logs_count=Count('weekly_logs'))
-            .values('student__username', 'student__id', 'logs_count', 'final_grade', 'total_score')
+            .values(
+                'student__username', 'student__id',
+                'logs_count', 'final_grade', 'total_score',
+            )
         )
 
         pending_reviews = WeeklyLog.objects.filter(status='submitted')
@@ -329,12 +349,11 @@ class DashboardStatsView(APIView):
         pending_reviews_count = pending_reviews.count()
 
         admin_stats = None
-        if user.role in ('admin',) or user.is_superuser:
+        if user.role == 'admin' or user.is_superuser:
             admin_stats = Evaluation.objects.aggregate(
                 avg_score=Avg('total_weighted_score'),
                 total_evals=Count('id'),
             )
-        
             grade_dist = list(
                 InternshipPlacement.objects.values('final_grade')
                 .annotate(count=Count('id'))

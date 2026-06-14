@@ -31,6 +31,14 @@ export default function WeeklyLogs() {
   const isAcadSup = role === 'acad_supervisor';
   const isAdmin = role === 'admin';
 
+  // A student needs at least one active placement before they can log
+  // anything against it. Without this, "+ New log" opens a modal whose
+  // placement dropdown is empty, the form silently submits placement: '',
+  // and the backend rejects it — looking to the user like the log
+  // "disappeared" or like their placement isn't connected to anything.
+  const eligiblePlacements = placements.filter(p => p.is_active);
+  const hasEligiblePlacement = eligiblePlacements.length > 0;
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -47,7 +55,14 @@ export default function WeeklyLogs() {
   useEffect(() => { load(); }, [load]);
 
   const openCreate = () => {
-    setForm(emptyForm);
+    setForm({
+      ...emptyForm,
+      // If the student has exactly one active placement, pre-select it —
+      // most students only ever have one, and forcing a manual choice
+      // here is the step that most often gets skipped, leaving
+      // placement: '' and causing a save error.
+      placement: eligiblePlacements.length === 1 ? eligiblePlacements[0].id : '',
+    });
     setErrors({});
     setModal('create');
   };
@@ -83,6 +98,7 @@ export default function WeeklyLogs() {
   };
 
   const handleSave = async () => {
+    if (!isStudent) return; // only students create/edit their own logs
     setSaving(true);
     setErrors({});
     try {
@@ -106,6 +122,7 @@ export default function WeeklyLogs() {
   };
 
   const handleSubmitLog = async (log) => {
+    if (!isStudent) return;
     try {
       await api.patch(`/weekly-logs/${log.id}/`, { status: 'submitted' });
       load();
@@ -115,6 +132,7 @@ export default function WeeklyLogs() {
   };
 
   const handleReview = async () => {
+    if (!isWorkSup) return; // only the workplace supervisor reviews
     setSaving(true);
     try {
       await api.patch(`/weekly-logs/${selected.id}/review/`, {
@@ -130,6 +148,7 @@ export default function WeeklyLogs() {
   };
 
   const handleApprove = async (log) => {
+    if (!isAcadSup) return; // only the academic supervisor approves
     try {
       await api.patch(`/weekly-logs/${log.id}/approve/`);
       load();
@@ -163,11 +182,24 @@ export default function WeeklyLogs() {
           </p>
         </div>
         {isStudent && (
-          <button className="btn btn-primary" onClick={openCreate}>
+          <button
+            className="btn btn-primary"
+            onClick={openCreate}
+            disabled={!hasEligiblePlacement}
+            title={!hasEligiblePlacement ? 'You need an active placement before you can submit logs' : undefined}
+          >
             + New log
           </button>
         )}
       </div>
+
+      {isStudent && !hasEligiblePlacement && (
+        <div className="alert alert-info" style={{ marginBottom: 20 }}>
+          You don't have an active placement yet. Go to{' '}
+          <strong>Placements</strong> and register or activate an internship
+          placement — once it's active, you'll be able to submit weekly logs against it.
+        </div>
+      )}
 
       {/* Filters */}
       <div className="filters">
@@ -191,7 +223,7 @@ export default function WeeklyLogs() {
             icon="📝"
             title="No logs found"
             description={isStudent ? 'Start by creating your first weekly log.' : 'No logs match the current filter.'}
-            action={isStudent && <button className="btn btn-primary" onClick={openCreate}>Create log</button>}
+            action={isStudent && hasEligiblePlacement && <button className="btn btn-primary" onClick={openCreate}>Create log</button>}
           />
         </div>
       ) : (
@@ -371,7 +403,7 @@ export default function WeeklyLogs() {
             <label className="form-label">Placement <span className="req">*</span></label>
             <select name="placement" className="form-control" value={form.placement} onChange={handleChange}>
               <option value="">— Select placement —</option>
-              {placements.map(p => (
+              {eligiblePlacements.map(p => (
                 <option key={p.id} value={p.id}>
                   {p.organization_name} — {p.position}
                 </option>
