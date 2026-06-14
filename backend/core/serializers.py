@@ -10,11 +10,13 @@ from .models import (
 
 User = get_user_model()
 
+
 # DEPARTMENT
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
         fields = '__all__'
+
 
 # CUSTOM USER
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -28,7 +30,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'staff_number', 'phone_number',
         ]
 
-# USER REGISTRATION 
+
+# USER REGISTRATION
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True, required=True, validators=[validate_password]
@@ -43,12 +46,14 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'staff_number', 'phone_number',
             'password', 'password2',
         ]
+
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError(
                 {"password": "Password fields didn't match."}
             )
         return attrs
+
     def create(self, validated_data):
         validated_data.pop('password2')
         password = validated_data.pop('password')
@@ -60,7 +65,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user.groups.add(group)
         return user
 
-# JWT — custom claims 
+
+# JWT — custom claims
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -85,16 +91,34 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             'department': self.user.department.name if self.user.department else None,
         }
         return data
-    
-# INTERNSHIP PLACEMENT  
+
+
+# INTERNSHIP PLACEMENT
 class InternshipPlacementSerializer(serializers.ModelSerializer):
-    student_name = serializers.ReadOnlyField(source='student.username')
-    academic_supervisor_name = serializers.ReadOnlyField(
-        source='academic_supervisor.get_full_name'
-    )
-    workplace_supervisor_name = serializers.ReadOnlyField(
-        source='workplace_supervisor.get_full_name'
-    )
+    student_name = serializers.SerializerMethodField()
+    academic_supervisor_name = serializers.SerializerMethodField()
+    workplace_supervisor_name = serializers.SerializerMethodField()
+
+    def get_student_name(self, obj):
+        u = obj.student
+        if not u:
+            return '—'
+        full = f"{u.first_name} {u.last_name}".strip()
+        return full or u.username
+
+    def get_academic_supervisor_name(self, obj):
+        u = obj.academic_supervisor
+        if not u:
+            return '—'
+        full = f"{u.first_name} {u.last_name}".strip()
+        return full or u.username
+
+    def get_workplace_supervisor_name(self, obj):
+        u = obj.workplace_supervisor
+        if not u:
+            return '—'
+        full = f"{u.first_name} {u.last_name}".strip()
+        return full or u.username
 
     class Meta:
         model = InternshipPlacement
@@ -102,6 +126,7 @@ class InternshipPlacementSerializer(serializers.ModelSerializer):
         read_only_fields = ['total_score', 'final_grade', 'created_at']
         extra_kwargs = {
             'student': {'required': False, 'allow_null': True},
+            'registration_number': {'required': False, 'allow_blank': True},
         }
 
     def validate(self, data):
@@ -114,7 +139,6 @@ class InternshipPlacementSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"end_date": "The internship end date must be after the start date."}
                 )
-
             overlapping = InternshipPlacement.objects.filter(
                 student=student,
                 start_date__lt=end,
@@ -122,15 +146,14 @@ class InternshipPlacementSerializer(serializers.ModelSerializer):
             )
             if self.instance:
                 overlapping = overlapping.exclude(pk=self.instance.pk)
-
             if overlapping.exists():
                 raise serializers.ValidationError(
                     "This student already has an internship during these dates."
                 )
-
         return data
-    
-# LOG STATUS HISTORY 
+
+
+# LOG STATUS HISTORY
 class LogStatusHistorySerializer(serializers.ModelSerializer):
     changed_by_username = serializers.ReadOnlyField(source='changed_by.username')
 
@@ -138,8 +161,8 @@ class LogStatusHistorySerializer(serializers.ModelSerializer):
         model = LogStatusHistory
         fields = '__all__'
 
-# WEEKLY LOG 
 
+# WEEKLY LOG
 class WeeklyLogSerializer(serializers.ModelSerializer):
     student_name = serializers.ReadOnlyField(source='student.username')
     history = LogStatusHistorySerializer(many=True, read_only=True)
@@ -152,7 +175,7 @@ class WeeklyLogSerializer(serializers.ModelSerializer):
     def validate_status(self, new_status):
         instance = self.instance
         if instance is None:
-            return new_status 
+            return new_status
         old_status = instance.status
         allowed = WeeklyLog.VALID_TRANSITIONS.get(old_status, [])
         if new_status != old_status and new_status not in allowed:
@@ -165,13 +188,15 @@ class WeeklyLogSerializer(serializers.ModelSerializer):
         instance._changed_by = self.context['request'].user
         return super().update(instance, validated_data)
 
-# EVALUATION CRITERIA 
+
+# EVALUATION CRITERIA
 class EvaluationCriteriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = EvaluationCriteria
         fields = '__all__'
 
-# EVALUATION 
+
+# EVALUATION
 class EvaluationSerializer(serializers.ModelSerializer):
     student_name = serializers.ReadOnlyField(source='placement.student.username')
     computed_score = serializers.ReadOnlyField(source='total_weighted_score')
@@ -187,7 +212,7 @@ class EvaluationSerializer(serializers.ModelSerializer):
         )
         if (
             placement
-            and not self.instance  # only on create
+            and not self.instance
             and Evaluation.objects.filter(placement=placement).exists()
         ):
             raise serializers.ValidationError(

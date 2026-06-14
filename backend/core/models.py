@@ -5,6 +5,7 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 
+
 # DEPARTMENT
 class Department(models.Model):
     name = models.CharField(max_length=255)
@@ -12,6 +13,7 @@ class Department(models.Model):
 
     def __str__(self):
         return self.name
+
 
 # CUSTOM USER
 class CustomUser(AbstractUser):
@@ -32,6 +34,7 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
+
     @property
     def is_student(self):
         return self.role == 'student'
@@ -52,10 +55,11 @@ class CustomUser(AbstractUser):
         verbose_name = "Custom User"
         verbose_name_plural = "Custom Users"
 
-# INTERNSHIP PLACEMENT 
+
+# INTERNSHIP PLACEMENT
 class InternshipPlacement(models.Model):
     student = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
+        settings.AUTH_USER_MODEL,
         related_name='placements',
         on_delete=models.CASCADE,
         limit_choices_to={'role': 'student'}
@@ -76,7 +80,8 @@ class InternshipPlacement(models.Model):
     )
 
     organization_name = models.CharField(max_length=255)
-    registration_number = models.CharField(max_length=100)
+    # blank=True and default='' so registration_number is optional
+    registration_number = models.CharField(max_length=100, blank=True, default='')
     position = models.CharField(max_length=255)
     location = models.CharField(max_length=255)
     duration = models.CharField(max_length=100)
@@ -89,32 +94,34 @@ class InternshipPlacement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     total_score = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
     final_grade = models.CharField(max_length=2, blank=True)
+
     def clean(self):
         if self.start_date and self.end_date:
             if self.start_date >= self.end_date:
                 raise ValidationError(
                     {"end_date": "The internship end date must be after the start date."}
                 )
-
             overlapping = InternshipPlacement.objects.filter(
                 student=self.student,
                 start_date__lt=self.end_date,
                 end_date__gt=self.start_date,
             ).exclude(pk=self.pk)
-
             if overlapping.exists():
                 raise ValidationError(
                     "This student already has an internship placement during this period."
                 )
 
     def save(self, *args, **kwargs):
-        self.full_clean()
+        # full_clean() removed — serializer handles all validation
+        # calling it here caused registration_number blank errors even
+        # after the serializer accepted it as optional
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.student.username} - {self.organization_name}"
-    
-# WEEKLY LOG  
+
+
+# WEEKLY LOG
 class WeeklyLog(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -127,7 +134,7 @@ class WeeklyLog(models.Model):
         'draft': ['submitted'],
         'submitted': ['reviewed', 'draft'],
         'reviewed': ['approved', 'submitted'],
-        'approved': [], 
+        'approved': [],
     }
 
     placement = models.ForeignKey(
@@ -174,13 +181,15 @@ class WeeklyLog(models.Model):
                     raise ValidationError(
                         f"Invalid status transition: '{original.status}' → '{self.status}'."
                     )
+
     def save(self, *args, **kwargs):
         if self.status == 'submitted' and not self.submitted_at:
             self.submitted_at = timezone.now()
         self.full_clean()
         super().save(*args, **kwargs)
 
-# EVALUATION CRITERIA 
+
+# EVALUATION CRITERIA
 class EvaluationCriteria(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -189,7 +198,8 @@ class EvaluationCriteria(models.Model):
     def __str__(self):
         return f"{self.title} - {self.max_score} marks"
 
-# EVALUATION 
+
+# EVALUATION
 class Evaluation(models.Model):
     placement = models.OneToOneField(
         'InternshipPlacement',
@@ -201,9 +211,9 @@ class Evaluation(models.Model):
         on_delete=models.CASCADE,
         limit_choices_to={'role': 'acad_supervisor'}
     )
-    attendance_punctuality = models.PositiveIntegerField(default=0) 
-    technical_competence = models.PositiveIntegerField(default=0)   
-    quality_of_work = models.PositiveIntegerField(default=0)         
+    attendance_punctuality = models.PositiveIntegerField(default=0)
+    technical_competence = models.PositiveIntegerField(default=0)
+    quality_of_work = models.PositiveIntegerField(default=0)
     total_weighted_score = models.FloatField(editable=False, default=0.0)
     supervisor_comments = models.TextField(blank=True)
     date_evaluated = models.DateTimeField(auto_now_add=True)
@@ -246,7 +256,8 @@ class Evaluation(models.Model):
 
     def __str__(self):
         return f"Evaluation: {self.placement.student.username} ({self.total_weighted_score})"
-    
+
+
 # LOG STATUS HISTORY
 class LogStatusHistory(models.Model):
     log = models.ForeignKey(WeeklyLog, on_delete=models.CASCADE, related_name='history')

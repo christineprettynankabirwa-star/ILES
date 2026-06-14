@@ -1,363 +1,297 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 
-function LandingSite() {
-    const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
-    const canvasRef = useRef(null);
+export default function Home() {
+  return (
+    <div style={{ minHeight: '100vh', background: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }}>
 
-    // Hardware-accelerated Software Project Architecture Animation Engine
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        let animationFrameId;
-
-        const resizeCanvas = () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        };
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-
-        // Core components of a modern web development software stack
-        const projectModules = [
-            'Frontend (React)', 'Backend (Django)', 'PostgreSQL', 'REST API', 
-            'JWT Auth', 'Redux Store', 'Docker Container', 'Git Merge', 
-            'Nginx Server', 'Logbook Serializer', 'Supervisor Auth Pipeline'
-        ];
-
-        // Instantiate nodes with individual positioning vectors, velocities, and labels
-        const nodeCount = Math.min(22, Math.floor((canvas.width * canvas.height) / 50000));
-        const nodes = Array.from({ length: nodeCount }, () => ({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            vx: (Math.random() - 0.5) * 0.8,
-            vy: (Math.random() - 0.5) * 0.8,
-            radius: 4,
-            label: projectModules[Math.floor(Math.random() * projectModules.length)]
-        }));
-
-        const render = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Step 1: Draw the connecting network data pipelines
-            for (let i = 0; i < nodes.length; i++) {
-                for (let j = i + 1; j < nodes.length; j++) {
-                    const dx = nodes[i].x - nodes[j].x;
-                    const dy = nodes[i].y - nodes[j].y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-
-                    // Connect modules if they drift close enough together
-                    if (distance < 160) {
-                        const alpha = (1 - distance / 160) * 0.18;
-                        ctx.strokeStyle = `rgba(52, 152, 219, ${alpha})`; // Blue link stream
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(nodes[i].x, nodes[i].y);
-                        ctx.lineTo(nodes[j].x, nodes[j].y);
-                        ctx.stroke();
-                    }
-                }
-            }
-
-            // Step 2: Draw the interactive architecture node blocks
-            nodes.forEach((node) => {
-                // Update vector positions
-                node.x += node.vx;
-                node.y += node.vy;
-
-                // Bounce layout edges cleanly
-                if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
-                if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
-
-                // Render microservice node dot
-                ctx.beginPath();
-                ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-                ctx.fillStyle = '#3498db';
-                ctx.fill();
-
-                // Render accompanying technical system title labels
-                ctx.font = '600 11px "Courier New", monospace';
-                ctx.fillStyle = 'rgba(44, 62, 80, 0.45)';
-                ctx.fillText(`[${node.label}]`, node.x + 10, node.y + 4);
-            });
-
-            animationFrameId = requestAnimationFrame(render);
-        };
-        render();
-
-        return () => {
-            window.removeEventListener('resize', resizeCanvas);
-            cancelAnimationFrame(animationFrameId);
-        };
-    }, []);
-
-    const handleContactSubmit = (e) => {
-        e.preventDefault();
-        alert(`Message sent by ${contactForm.name}! We will get back to you shortly.`);
-        setContactForm({ name: '', email: '', message: '' });
-    };
-
-    // Global Styles Setup
-    const layoutStyle = {
-        fontFamily: '"Segoe UI", Roboto, sans-serif',
-        color: '#2c3e50',
-        backgroundColor: '#fdfefe',
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative'
-    };
-
-    const canvasContainerStyle = {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        pointerEvents: 'none',
-        zIndex: 1
-    };
-
-    const headerStyle = {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '25px 5%',
-        backgroundColor: 'rgba(255, 255, 255, 0.93)',
-        backdropFilter: 'blur(8px)',
-        borderBottom: '1px solid #ebedf0',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1000
-    };
-
-    const brandingStyle = {
-        fontSize: '26px',
-        fontWeight: '800',
-        color: '#2c3e50',
-        textDecoration: 'none',
-        letterSpacing: '0.5px'
-    };
-
-    const authContainerStyle = {
-        display: 'flex',
-        alignItems: 'center',
-        border: '2px solid #e2e8f0',
-        borderRadius: '8px',
-        overflow: 'hidden',
-        backgroundColor: '#ffffff'
-    };
-
-    const authTabStyle = {
-        padding: '10px 20px',
-        textDecoration: 'none',
-        fontWeight: '600',
-        fontSize: '14px'
-    };
-
-    const signupTabStyle = {
-        ...authTabStyle,
-        backgroundColor: '#3498db',
-        color: '#ffffff'
-    };
-
-    const loginTabStyle = {
-        ...authTabStyle,
-        backgroundColor: '#ffffff',
-        color: '#3498db'
-    };
-
-    const sectionStyle = {
-        padding: '90px 10%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-        borderBottom: '1px solid #f2f4f7',
-        position: 'relative',
-        zIndex: 2
-    };
-
-    const sectionHeadingStyle = {
-        fontSize: '34px',
-        fontWeight: '700',
-        marginBottom: '25px',
-        color: '#2c3e50'
-    };
-
-    const bodyTextStyle = {
-        fontSize: '17px',
-        color: '#657786',
-        lineHeight: '1.8',
-        maxWidth: '850px',
-        margin: '0 auto'
-    };
-
-    const welcomeSectionStyle = {
-        ...sectionStyle,
-        backgroundColor: 'transparent', 
-        padding: '140px 10%'
-    };
-
-    const mainTitleStyle = {
-        fontSize: '52px',
-        fontWeight: '800',
-        color: '#1a252f',
-        margin: '0 0 20px 0',
-        lineHeight: '1.2'
-    };
-
-    const universityTagStyle = {
-        fontSize: '14px',
-        fontWeight: '700',
-        color: '#3498db',
-        textTransform: 'uppercase',
-        letterSpacing: '2px',
-        marginBottom: '15px'
-    };
-
-    const mvGridStyle = {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-        gap: '40px',
-        width: '100%',
-        maxWidth: '1000px',
-        marginTop: '30px'
-    };
-
-    const mvCardStyle = {
-        padding: '40px 30px',
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(4px)',
-        borderRadius: '12px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-        border: '1px solid #edf2f7',
-        textAlign: 'left'
-    };
-
-    const formStyle = {
-        width: '100%',
-        maxWidth: '550px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-        marginTop: '30px'
-    };
-
-    const inputStyle = {
-        width: '100%',
-        padding: '14px 18px',
-        borderRadius: '8px',
-        border: '1px solid #cbd5e1',
-        fontSize: '15px',
-        outline: 'none',
-        boxSizing: 'border-box'
-    };
-
-    const textareaStyle = {
-        ...inputStyle,
-        height: '140px',
-        resize: 'vertical'
-    };
-
-    const submitButtonStyle = {
-        backgroundColor: '#2ecc71',
-        color: '#ffffff',
-        padding: '14px',
-        border: 'none',
-        borderRadius: '8px',
-        fontSize: '16px',
-        fontWeight: '600',
-        cursor: 'pointer',
-        boxShadow: '0 4px 12px rgba(46, 204, 113, 0.2)'
-    };
-
-    return (
-        <div style={layoutStyle}>
-            {/* The animation element rendering behind landing block content items */}
-            <canvas ref={canvasRef} style={canvasContainerStyle} />
-
-            <header style={headerStyle}>
-                <Link to="/" style={brandingStyle}>ILES</Link>
-                <div style={authContainerStyle}>
-                    <Link to="/signup" style={signupTabStyle}>Signup</Link>
-                    <Link to="/login" style={loginTabStyle}>Login</Link>
-                </div>
-            </header>
-
-            <section style={welcomeSectionStyle}>
-                <div style={universityTagStyle}>University of Uganda</div>
-                <h1 style={mainTitleStyle}>Welcome to ILES</h1>
-                <p style={{...bodyTextStyle, fontSize: '20px', color: '#4a5568'}}>
-                    The modern, automated platform optimizing Industrial Training monitoring, daily progress logging, and field metrics translation for Computer Science students and faculty.
-                </p>
-            </section>
-
-            <section style={{...sectionStyle, backgroundColor: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(2px)'}}>
-                <h2 style={sectionHeadingStyle}>Mission & Vision</h2>
-                <div style={mvGridStyle}>
-                    <div style={mvCardStyle}>
-                        <h3 style={{fontSize: '22px', color: '#2c3e50', marginBottom: '15px'}}>Our Mission</h3>
-                        <p style={{...bodyTextStyle, fontSize: '15px', textAlign: 'left'}}>
-                            To provide an intuitive, high-integrity framework that simplifies how students track field experience and bridges real-time performance logging gaps between host organizations and department academic supervisors.
-                        </p>
-                    </div>
-                    <div style={mvCardStyle}>
-                        <h3 style={{fontSize: '22px', color: '#2c3e50', marginBottom: '15px'}}>Our Vision</h3>
-                        <p style={{...bodyTextStyle, fontSize: '15px', textAlign: 'left'}}>
-                            To establish a transparent, paperless continuous evaluation baseline across East African technical disciplines, leveraging accurate data trails to maximize internship training qualities.
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            <section style={{...sectionStyle, backgroundColor: 'rgba(248, 250, 252, 0.85)', backdropFilter: 'blur(2px)'}}>
-                <h2 style={sectionHeadingStyle}>About Us</h2>
-                <p style={bodyTextStyle}>
-                    The Internship Logging & Evaluation System (ILES) was conceptualized to address the structural challenges of physical logbook maintenance within higher education. Developed specifically for university ecosystems, our software shifts manual paper systems into a collaborative, automated pipeline. By unifying field metrics and programmatic reviews into a centralized digital hub, we enhance verification transparency and simplify the reporting workflow for students and faculties alike.
-                </p>
-            </section>
-
-            <section style={{...sectionStyle, backgroundColor: 'rgba(255, 255, 255, 0.95)', borderBottom: 'none'}}>
-                <h2 style={sectionHeadingStyle}>Contact Us</h2>
-                <p style={bodyTextStyle}>
-                    Have questions about registration validation rules, custom schemas, or platform deployment? Send a message to the administrator department.
-                </p>
-                
-                <form onSubmit={handleContactSubmit} style={formStyle}>
-                    <input 
-                        type="text" 
-                        placeholder="Your Full Name" 
-                        style={inputStyle}
-                        required 
-                        value={contactForm.name}
-                        onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
-                    />
-                    <input 
-                        type="email" 
-                        placeholder="Your Email Address" 
-                        style={inputStyle}
-                        required 
-                        value={contactForm.email}
-                        onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
-                    />
-                    <textarea 
-                        placeholder="Type your message here..." 
-                        style={textareaStyle}
-                        required
-                        value={contactForm.message}
-                        onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
-                    />
-                    <button type="submit" style={submitButtonStyle}>Send Message</button>
-                </form>
-            </section>
-
-            <footer style={{backgroundColor: '#1a252f', color: '#94a3b8', padding: '25px', textAlign: 'center', fontSize: '14px', marginTop: 'auto', position: 'relative', zIndex: 10}}>
-                &copy; {new Date().getFullYear()} Internship Logging & Evaluation System (ILES). All rights reserved.
-            </footer>
+      {/* ── Navbar ── */}
+      <nav style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 60px', height: 64,
+        borderBottom: '1px solid rgba(0,0,0,0.08)',
+        position: 'sticky', top: 0, background: '#fff', zIndex: 100,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            width: 36, height: 36, background: '#185FA5', borderRadius: 9,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontWeight: 700, fontSize: 16,
+          }}>I</div>
+          <span style={{ fontWeight: 700, fontSize: 18, color: '#2C2C2A' }}>ILES Portal</span>
         </div>
-    );
-}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Link to="/login" style={{
+            padding: '8px 18px', borderRadius: 8, fontSize: 14, fontWeight: 500,
+            color: '#185FA5', border: '1px solid #185FA5', textDecoration: 'none',
+            transition: 'all 0.15s',
+          }}>Sign in</Link>
+          <Link to="/register" style={{
+            padding: '8px 18px', borderRadius: 8, fontSize: 14, fontWeight: 500,
+            background: '#185FA5', color: '#fff', textDecoration: 'none',
+            transition: 'all 0.15s',
+          }}>Get started</Link>
+        </div>
+      </nav>
 
-export default LandingSite;
+      {/* ── Hero ── */}
+      <section style={{
+        background: 'linear-gradient(135deg, #0C447C 0%, #185FA5 50%, #0F6E56 100%)',
+        padding: '90px 60px 80px',
+        textAlign: 'center',
+        color: '#fff',
+      }}>
+        <div style={{
+          display: 'inline-block',
+          background: 'rgba(255,255,255,0.15)',
+          borderRadius: 20, padding: '6px 16px',
+          fontSize: 13, fontWeight: 600, marginBottom: 24,
+          border: '1px solid rgba(255,255,255,0.25)',
+        }}>
+          🎓 Internship Logging & Evaluation System
+        </div>
+        <h1 style={{
+          fontSize: 52, fontWeight: 800, lineHeight: 1.15,
+          marginBottom: 22, letterSpacing: -1,
+          maxWidth: 700, margin: '0 auto 22px',
+        }}>
+          Manage internships.<br />Track progress. Evaluate performance.
+        </h1>
+        <p style={{
+          fontSize: 18, color: 'rgba(255,255,255,0.82)',
+          maxWidth: 560, margin: '0 auto 36px', lineHeight: 1.7,
+        }}>
+          A unified platform for students, workplace supervisors, academic supervisors,
+          and administrators to manage the full internship lifecycle.
+        </p>
+        <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Link to="/register" style={{
+            padding: '13px 32px', background: '#fff', color: '#185FA5',
+            borderRadius: 9, fontSize: 15, fontWeight: 700, textDecoration: 'none',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
+          }}>
+            Create account →
+          </Link>
+          <Link to="/login" style={{
+            padding: '13px 32px', background: 'rgba(255,255,255,0.15)',
+            color: '#fff', borderRadius: 9, fontSize: 15, fontWeight: 600,
+            textDecoration: 'none', border: '1px solid rgba(255,255,255,0.3)',
+          }}>
+            Sign in
+          </Link>
+        </div>
+
+        {/* Stats row */}
+        <div style={{
+          display: 'flex', justifyContent: 'center', gap: 48,
+          marginTop: 60, flexWrap: 'wrap',
+        }}>
+          {[
+            { value: '4', label: 'User Roles' },
+            { value: '7', label: 'Core Modules' },
+            { value: '100%', label: 'Workflow Automated' },
+          ].map(s => (
+            <div key={s.label} style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 36, fontWeight: 800 }}>{s.value}</div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 4 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Roles Section ── */}
+      <section style={{ padding: '80px 60px', background: '#F7F6F3' }}>
+        <div style={{ textAlign: 'center', marginBottom: 50 }}>
+          <h2 style={{ fontSize: 34, fontWeight: 700, color: '#2C2C2A', marginBottom: 12 }}>
+            Built for every stakeholder
+          </h2>
+          <p style={{ fontSize: 16, color: '#5F5E5A', maxWidth: 500, margin: '0 auto' }}>
+            Each role gets a tailored experience with the right tools and permissions.
+          </p>
+        </div>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: 20, maxWidth: 1000, margin: '0 auto',
+        }}>
+          {[
+            {
+              icon: '🎒', title: 'Student Intern',
+              color: '#185FA5', bg: '#E6F1FB',
+              points: ['Submit weekly logs', 'Track placement status', 'View grades & scores', 'Monitor deadlines'],
+            },
+            {
+              icon: '🏢', title: 'Workplace Supervisor',
+              color: '#0F6E56', bg: '#E1F5EE',
+              points: ['Review weekly logs', 'Add supervisor comments', 'Approve submissions', 'Monitor student activity'],
+            },
+            {
+              icon: '🎓', title: 'Academic Supervisor',
+              color: '#854F0B', bg: '#FAEEDA',
+              points: ['Evaluate student performance', 'Compute weighted scores', 'Approve reviewed logs', 'Manage placements'],
+            },
+            {
+              icon: '⚙️', title: 'Administrator',
+              color: '#A32D2D', bg: '#FCEBEB',
+              points: ['Manage all users', 'View system statistics', 'Configure departments', 'Access all data'],
+            },
+          ].map(role => (
+            <div key={role.title} style={{
+              background: '#fff', borderRadius: 14,
+              border: '1px solid rgba(0,0,0,0.08)',
+              padding: '28px 24px',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+            }}>
+              <div style={{
+                width: 48, height: 48, borderRadius: 12,
+                background: role.bg, display: 'flex',
+                alignItems: 'center', justifyContent: 'center',
+                fontSize: 22, marginBottom: 16,
+              }}>{role.icon}</div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2A', marginBottom: 14 }}>
+                {role.title}
+              </h3>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                {role.points.map(p => (
+                  <li key={p} style={{
+                    fontSize: 13.5, color: '#5F5E5A',
+                    padding: '4px 0',
+                    display: 'flex', alignItems: 'center', gap: 8,
+                  }}>
+                    <span style={{ color: role.color, fontWeight: 700 }}>✓</span> {p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Features Section ── */}
+      <section style={{ padding: '80px 60px', background: '#fff' }}>
+        <div style={{ textAlign: 'center', marginBottom: 50 }}>
+          <h2 style={{ fontSize: 34, fontWeight: 700, color: '#2C2C2A', marginBottom: 12 }}>
+            Everything you need
+          </h2>
+          <p style={{ fontSize: 16, color: '#5F5E5A', maxWidth: 500, margin: '0 auto' }}>
+            From placement registration to final grading — all in one place.
+          </p>
+        </div>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 24, maxWidth: 1000, margin: '0 auto',
+        }}>
+          {[
+            { icon: '📋', title: 'Placement Management', desc: 'Register internship placements with organisation details, dates, supervisors, and prevent scheduling conflicts automatically.' },
+            { icon: '📝', title: 'Weekly Logbook', desc: 'Students submit weekly activity logs with deadline enforcement. Logs move through Draft → Submitted → Reviewed → Approved.' },
+            { icon: '🔄', title: 'Supervisor Workflow', desc: 'Structured review process ensures workplace supervisors review logs before academic supervisors can approve them.' },
+            { icon: '📊', title: 'Weighted Evaluation', desc: 'Academic supervisors evaluate students across attendance (40%), technical competence (30%), and quality of work (30%).' },
+            { icon: '🏆', title: 'Automatic Grading', desc: 'Total scores are computed automatically and synced to the placement record. Grades A–F are assigned instantly.' },
+            { icon: '📈', title: 'Dashboards & Reports', desc: 'Role-specific dashboards with charts showing student progress, pending reviews, and institutional statistics.' },
+          ].map(f => (
+            <div key={f.title} style={{
+              padding: '24px', borderRadius: 12,
+              border: '1px solid rgba(0,0,0,0.08)',
+              background: '#F7F6F3',
+            }}>
+              <div style={{ fontSize: 28, marginBottom: 12 }}>{f.icon}</div>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: '#2C2C2A', marginBottom: 8 }}>{f.title}</h3>
+              <p style={{ fontSize: 13.5, color: '#5F5E5A', lineHeight: 1.65, margin: 0 }}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Workflow Section ── */}
+      <section style={{ padding: '80px 60px', background: '#0C447C', color: '#fff' }}>
+        <div style={{ textAlign: 'center', marginBottom: 50 }}>
+          <h2 style={{ fontSize: 34, fontWeight: 700, marginBottom: 12 }}>
+            How the log workflow works
+          </h2>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.7)', maxWidth: 480, margin: '0 auto' }}>
+            Every weekly log follows a strict approval chain.
+          </p>
+        </div>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 0, flexWrap: 'wrap', maxWidth: 860, margin: '0 auto',
+        }}>
+          {[
+            { step: '1', label: 'Draft', desc: 'Student creates log', color: '#888780' },
+            { step: '2', label: 'Submitted', desc: 'Student submits log', color: '#185FA5' },
+            { step: '3', label: 'Reviewed', desc: 'Workplace supervisor reviews', color: '#BA7517' },
+            { step: '4', label: 'Approved', desc: 'Academic supervisor approves', color: '#3B6D11' },
+          ].map((s, i, arr) => (
+            <React.Fragment key={s.step}>
+              <div style={{ textAlign: 'center', padding: '0 12px' }}>
+                <div style={{
+                  width: 56, height: 56, borderRadius: '50%',
+                  background: s.color, color: '#fff',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 20, fontWeight: 700, margin: '0 auto 12px',
+                  border: '3px solid rgba(255,255,255,0.2)',
+                }}>{s.step}</div>
+                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{s.label}</div>
+                <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.6)', maxWidth: 110 }}>{s.desc}</div>
+              </div>
+              {i < arr.length - 1 && (
+                <div style={{ fontSize: 22, color: 'rgba(255,255,255,0.3)', padding: '0 4px', marginBottom: 28 }}>→</div>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      </section>
+
+      {/* ── CTA Section ── */}
+      <section style={{
+        padding: '80px 60px', textAlign: 'center', background: '#F7F6F3',
+      }}>
+        <h2 style={{ fontSize: 36, fontWeight: 700, color: '#2C2C2A', marginBottom: 14 }}>
+          Ready to get started?
+        </h2>
+        <p style={{ fontSize: 16, color: '#5F5E5A', maxWidth: 440, margin: '0 auto 32px', lineHeight: 1.7 }}>
+          Join the ILES portal and streamline your internship management today.
+        </p>
+        <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Link to="/register" style={{
+            padding: '13px 32px', background: '#185FA5', color: '#fff',
+            borderRadius: 9, fontSize: 15, fontWeight: 700, textDecoration: 'none',
+          }}>
+            Create your account →
+          </Link>
+          <Link to="/login" style={{
+            padding: '13px 32px', background: '#fff', color: '#185FA5',
+            borderRadius: 9, fontSize: 15, fontWeight: 600,
+            textDecoration: 'none', border: '1px solid #185FA5',
+          }}>
+            Sign in
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer style={{
+        padding: '24px 60px',
+        borderTop: '1px solid rgba(0,0,0,0.08)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        background: '#fff', flexWrap: 'wrap', gap: 12,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{
+            width: 28, height: 28, background: '#185FA5', borderRadius: 7,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontWeight: 700, fontSize: 13,
+          }}>I</div>
+          <span style={{ fontWeight: 600, fontSize: 14, color: '#2C2C2A' }}>ILES Portal</span>
+        </div>
+        <p style={{ fontSize: 13, color: '#888780', margin: 0 }}>
+          © {new Date().getFullYear()} Internship Logging & Evaluation System · CSC 1202
+        </p>
+        <div style={{ display: 'flex', gap: 20 }}>
+          <Link to="/login" style={{ fontSize: 13, color: '#5F5E5A', textDecoration: 'none' }}>Sign in</Link>
+          <Link to="/register" style={{ fontSize: 13, color: '#5F5E5A', textDecoration: 'none' }}>Register</Link>
+        </div>
+      </footer>
+
+    </div>
+  );
+}

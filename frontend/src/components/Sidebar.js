@@ -75,14 +75,14 @@ export default function Sidebar() {
   };
 
   const navItems = [
-    { to: '/dashboard', label: 'Dashboard', icon: icons.dashboard, roles: ['student', 'work_supervisor', 'acad_supervisor', 'admin'] },
-    { to: '/placements', label: 'Placements', icon: icons.placement, roles: ['student', 'acad_supervisor', 'work_supervisor', 'admin'] },
-    { to: '/weekly-logs', label: 'Weekly Logs', icon: icons.log, roles: ['student', 'work_supervisor', 'acad_supervisor', 'admin'] },
-    { to: '/evaluations', label: 'Evaluations', icon: icons.eval, roles: ['student', 'acad_supervisor', 'admin'] },
-    { to: '/users', label: 'Users', icon: icons.users, roles: ['admin'] },
-    { to: '/departments', label: 'Departments', icon: icons.dept, roles: ['admin'] },
-    { to: '/criteria', label: 'Eval Criteria', icon: icons.criteria, roles: ['admin'] },
-    { to: '/profile', label: 'My Profile', icon: icons.profile, roles: ['student', 'work_supervisor', 'acad_supervisor', 'admin'] },
+    { to: '/app/dashboard', label: 'Dashboard', icon: icons.dashboard, roles: ['student', 'work_supervisor', 'acad_supervisor', 'admin'] },
+    { to: '/app/placements', label: 'Placements', icon: icons.placement, roles: ['student', 'acad_supervisor', 'work_supervisor', 'admin'] },
+    { to: '/app/weekly-logs', label: 'Weekly Logs', icon: icons.log, roles: ['student', 'work_supervisor', 'acad_supervisor', 'admin'] },
+    { to: '/app/evaluations', label: 'Evaluations', icon: icons.eval, roles: ['student', 'acad_supervisor', 'admin'] },
+    { to: '/app/users', label: 'Users', icon: icons.users, roles: ['admin'] },
+    { to: '/app/departments', label: 'Departments', icon: icons.dept, roles: ['admin'] },
+    { to: '/app/criteria', label: 'Eval Criteria', icon: icons.criteria, roles: ['admin'] },
+    { to: '/app/profile', label: 'My Profile', icon: icons.profile, roles: ['student', 'work_supervisor', 'acad_supervisor', 'admin'] },
   ];
 
   const visible = navItems.filter(n => n.roles.includes(role));
