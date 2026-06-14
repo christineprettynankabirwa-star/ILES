@@ -44,7 +44,7 @@ export default function Evaluations() {
   // Only academic supervisors and admins can create/edit/delete evaluations
   const canEvaluate = isAcadSup || isAdmin;
   // Everyone can view
-  const canView = true;
+
 
   // Placements available for evaluation:
   // acad supervisor → only approved placements assigned to them, not yet evaluated
